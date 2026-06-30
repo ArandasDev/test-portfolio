@@ -29,14 +29,15 @@
   // onda coletiva (campo de fluxo): vizinhos se movem juntos → onda visível
   const WAVE_SCALE = 0.006; // "comprimento" da onda no espaço
   const WAVE_SPEED = 0.6;   // velocidade com que a onda viaja no tempo
+  const IDLE_MS = 1100;     // tempo sem mover o mouse para considerar "ocioso"
 
   const NAME = canvas.dataset.name || "Olá";
   const ROLE = canvas.dataset.role || "Designer";
   const SCENES = [
-    { type: "wave", dur: 5000 },
-    { type: "text", text: NAME, dur: 5000 },
-    { type: "wave", dur: 3500 },
-    { type: "text", text: ROLE, dur: 5000 },
+    { type: "wave", dur: 3000 },
+    { type: "text", text: NAME, dur: 5500 },
+    { type: "wave", dur: 2800 },
+    { type: "text", text: ROLE, dur: 5500 },
   ];
 
   let dashes = [];
@@ -48,8 +49,8 @@
   const rand = (a, b) => Math.random() * (b - a) + a;
 
   function count() {
-    const base = (W * H) / 5200;                  // mais recheado
-    return Math.min(Math.round(base), window.innerWidth < 720 ? 200 : 660);
+    const base = (W * H) / 4000;                  // mais recheado
+    return Math.min(Math.round(base), window.innerWidth < 720 ? 280 : 900);
   }
 
   function build() {
@@ -180,9 +181,11 @@
     const t = now * 0.001;
     const hueBase = (t * HUE_SPEED) % 360;
     const scene = SCENES[sceneIdx];
+    // "interagindo" = mouse presente E mexendo há pouco; parado conta como ocioso
+    const interacting = mouse.active && now - mouse.lastMove < IDLE_MS;
 
-    // avança a coreografia apenas quando o mouse não está presente
-    if (!mouse.active) {
+    // a coreografia avança quando ocioso (sem interação ativa)
+    if (!interacting) {
       sceneClock += dt;
       if (sceneClock > scene.dur) {
         sceneClock = 0;
@@ -190,7 +193,7 @@
         enterScene();
       }
     }
-    const textMode = !mouse.active && scene.type === "text";
+    const textMode = !interacting && scene.type === "text";
 
     for (const p of dashes) {
       // ONDA coletiva: direção vinda de um campo de fluxo que viaja no tempo.
@@ -203,7 +206,7 @@
       let targetAlpha = p.baseAlpha;
       let sizeTarget = 1;
 
-      if (mouse.active) {
+      if (interacting) {
         // seguir o cursor + regra de tamanho por distância
         const mdx = mouse.x - p.bx;
         const mdy = mouse.y - p.by;
