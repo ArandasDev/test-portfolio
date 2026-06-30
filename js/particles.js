@@ -80,6 +80,7 @@
       bx, by,                        // âncora (na silhueta ou aleatória)
       x: bx + rand(-40, 40), y: by + rand(-40, 40),
       vx: 0, vy: 0,
+      vis: 0,                        // visibilidade (0..1): revelada perto do cursor
       len: rand(inShape ? 5 : 6, inShape ? 11 : 15) * dpr,
       angle: rand(0, Math.PI),
       amp: rand(inShape ? 1.2 : 3, inShape ? 3.5 : 8) * dpr, // wobble
@@ -147,7 +148,7 @@
   function drawDash(p) {
     const dx = Math.cos(p.angle) * p.len * 0.5;
     const dy = Math.sin(p.angle) * p.len * 0.5;
-    ctx.globalAlpha = p.alpha;
+    ctx.globalAlpha = p.alpha * p.vis;
     // traços coloridos trocam de cor continuamente (matiz girando no tempo +
     // offset por posição = a cor "varre" a tela, como o gradiente do card)
     ctx.strokeStyle = p.neutral
@@ -163,7 +164,7 @@
 
   function drawStatic() {
     ctx.clearRect(0, 0, W, H);
-    for (const p of particles) { p.x = p.bx; p.y = p.by; drawDash(p); }
+    for (const p of particles) { p.x = p.bx; p.y = p.by; p.vis = 1; drawDash(p); }
     ctx.globalAlpha = 1;
   }
 
@@ -173,12 +174,13 @@
   // campo de fluxo: a direção depende da posição (vizinhos se movem juntos)
   const WAVE_SCALE = 0.005;  // "comprimento" da onda no espaço
   const WAVE_SPEED = 0.5;    // velocidade com que a onda viaja no tempo
-  // atração ao cursor (os traços SEGUEM o mouse) + onda viajante enquanto seguem
-  const PULL_RADIUS = 440; // alcance da atração (px CSS) — pega mais traços
-  const PULL = 0.85;       // quão forte os traços são puxados (0..1)
-  const WAVE_LEN = 70;     // distância entre cristas da onda que segue (px CSS)
-  const WAVE_AMP = 14;     // deslocamento da onda enquanto seguem (px CSS)
-  const FOLLOW_WAVE_SPEED = 5; // velocidade da onda que viaja pelo cursor
+  // os traços só existem EM VOLTA do cursor; revelam ao aproximar e somem
+  // (com rastro) ao afastar — imitando o Antigravity.
+  const REVEAL_RADIUS = 320; // raio em que os traços aparecem (px CSS)
+  const PULL = 0.35;         // atração suave em direção ao cursor (0..1)
+  const WAVE_LEN = 65;       // distância entre cristas da onda radial (px CSS)
+  const WAVE_AMP = 16;       // deslocamento da onda (px CSS)
+  const FOLLOW_WAVE_SPEED = 5;
 
   function tick(now) {
     ctx.clearRect(0, 0, W, H);
@@ -186,40 +188,43 @@
     clock = t;
     const mx = mouse.x * dpr;
     const my = mouse.y * dpr;
-    const pr = PULL_RADIUS * dpr;
+    const rr = REVEAL_RADIUS * dpr;
     const wk = (Math.PI * 2) / (WAVE_LEN * dpr);
     const wamp = WAVE_AMP * dpr;
 
     for (const p of particles) {
-      // ONDA DE FLUXO (idle): direção vinda de um campo que viaja no tempo.
-      // Como depende de (bx, by), traços vizinhos apontam para o mesmo lado
-      // → onda coerente percorrendo a tela, mesmo com o mouse parado.
+      // movimento de base "vivo" (onda de fluxo suave)
       const flow = Math.sin(p.bx * WAVE_SCALE + t * WAVE_SPEED) +
                    Math.cos(p.by * WAVE_SCALE + t * WAVE_SPEED * 0.9);
-      const ang = flow * 1.6 + p.phase * 0.2;
+      let ang = flow * 1.6 + p.phase * 0.2;
       let tx = p.bx + Math.cos(ang) * p.amp;
       let ty = p.by + Math.sin(ang) * p.amp;
-      p.angle = ang; // traço alinhado à correnteza
 
-      // SEGUIR O MOUSE: traços dentro do raio são ATRAÍDOS para o cursor
-      // (o alvo desloca em direção a ele); uma onda viajante modula o quanto
-      // são puxados → efeito de onda enquanto seguem o mouse.
+      // REVELAÇÃO + ONDA ao redor do cursor
+      let targetVis = 0;
       if (mouse.active) {
         const dx = mx - p.bx;
         const dy = my - p.by;
         const d = Math.hypot(dx, dy);
-        if (d < pr && d > 0.01) {
-          const falloff = 1 - d / pr;
-          const wave = 0.7 + 0.3 * Math.sin(d * wk - t * FOLLOW_WAVE_SPEED);
-          const pull = falloff * falloff * PULL * wave;
-          tx += dx * pull;
-          ty += dy * pull;
-          // alinha o traço na direção do cursor + onda transversal sutil
-          p.angle = Math.atan2(dy, dx) + Math.sin(d * wk - t * FOLLOW_WAVE_SPEED) * 0.6;
-          tx += (-dy / d) * wamp * falloff * Math.sin(d * wk - t * FOLLOW_WAVE_SPEED);
-          ty += (dx / d) * wamp * falloff * Math.sin(d * wk - t * FOLLOW_WAVE_SPEED);
+        if (d < rr && d > 0.01) {
+          const u = 1 - d / rr;
+          targetVis = u * u * (3 - 2 * u); // smoothstep: borda macia
+          // onda radial viajante sobre o cluster (o "efeito de onda neles")
+          const phase = d * wk - t * FOLLOW_WAVE_SPEED;
+          const wave = Math.sin(phase);
+          // atração suave para o cursor + deslocamento da onda
+          const pull = u * u * PULL;
+          tx += dx * pull + (dx / d) * wave * wamp * u;
+          ty += dy * pull + (dy / d) * wave * wamp * u;
+          // traço alinhado à direção do cursor, ondulando
+          ang = Math.atan2(dy, dx) + wave * 0.6;
         }
       }
+      p.angle = ang;
+
+      // visibilidade: aparece rápido, some devagar (rastro)
+      const ease = targetVis > p.vis ? 0.2 : 0.045;
+      p.vis += (targetVis - p.vis) * ease;
 
       p.vx += (tx - p.x) * SPRING;
       p.vy += (ty - p.y) * SPRING;
@@ -228,7 +233,7 @@
       p.x += p.vx;
       p.y += p.vy;
 
-      drawDash(p);
+      if (p.vis > 0.02) drawDash(p);
     }
     ctx.globalAlpha = 1;
     raf = requestAnimationFrame(tick);
