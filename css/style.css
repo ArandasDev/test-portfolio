@@ -628,7 +628,18 @@ em { font-style: normal; color: var(--accent); }
   padding: clamp(3.5rem, 9vw, 7rem) var(--gutter) var(--space-lg);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
-/* iluminação em meia-lua, subindo do fundo (halo amplo, oval e difuso) */
+/* dots no fundo do rodapé (claros, com fade nas bordas) */
+.site-footer__dots {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+  background-size: 30px 30px;
+  mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+  opacity: 0.5;
+}
+/* iluminação em meia-lua COLORIDA, subindo do fundo (halo amplo, oval, difuso) */
 .site-footer__glow {
   position: absolute;
   left: 50%;
@@ -636,21 +647,26 @@ em { font-style: normal; color: var(--accent); }
   width: 145%;
   height: 60%;
   transform: translateX(-50%);
-  background: radial-gradient(ellipse 65% 100% at 50% 100%, rgba(56, 189, 248, 0.6) 0%, transparent 72%);
-  filter: blur(60px);
+  background: linear-gradient(90deg, var(--accent-2), var(--accent-5), var(--accent), var(--accent-4));
+  -webkit-mask: radial-gradient(ellipse 68% 100% at 50% 100%, #000 0%, transparent 72%);
+          mask: radial-gradient(ellipse 68% 100% at 50% 100%, #000 0%, transparent 72%);
+  filter: blur(72px);
+  opacity: 0.5;
   z-index: -1;
 }
-/* núcleo mais brilhante e oval da meia-lua (sem anel/borda dura) */
+/* núcleo mais brilhante e oval da meia-lua (gradiente colorido) */
 .site-footer__arc {
   position: absolute;
   left: 50%;
   bottom: -18%;
-  width: 100%;
-  height: 44%;
+  width: 105%;
+  height: 46%;
   transform: translateX(-50%);
-  background: radial-gradient(ellipse 65% 100% at 50% 100%,
-    rgba(214, 242, 255, 0.95) 0%, rgba(56, 189, 248, 0.85) 20%, transparent 66%);
-  filter: blur(34px);
+  background: linear-gradient(90deg, var(--accent-2), var(--accent-3), var(--accent-4), var(--accent), var(--accent-5));
+  -webkit-mask: radial-gradient(ellipse 65% 100% at 50% 100%, #000 0%, transparent 66%);
+          mask: radial-gradient(ellipse 65% 100% at 50% 100%, #000 0%, transparent 66%);
+  filter: blur(40px);
+  opacity: 0.8;
   z-index: -1;
 }
 .site-footer__inner {
