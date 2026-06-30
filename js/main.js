@@ -148,6 +148,18 @@
     );
   }
 
+  /* ---------- 6b. Toggle de tema claro/escuro ---------- */
+  const themeToggle = $("#themeToggle");
+  if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+      const next = current === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      try { localStorage.setItem("theme", next); } catch (e) {}
+      window.dispatchEvent(new CustomEvent("themechange", { detail: next }));
+    });
+  }
+
   /* ---------- 7. Cursor customizado (apenas desktop) ---------- */
   if (isFinePointer && !prefersReduced) {
     const cursor = $("#cursor");

@@ -1,9 +1,11 @@
 /* =========================================================
    particles.js — campo de "traços" coloridos em <canvas>.
-   Inspirado no Google Antigravity: os traços são repelidos
-   pelo cursor (mouse/toque) e voltam à base com mola.
-   Mobile-first: menos partículas em telas menores; estático
-   em prefers-reduced-motion.
+   Inspirado no Google Antigravity:
+   - parte das partículas forma uma SILHUETA (amostrada de um glifo);
+   - todas têm vida própria (wobble contínuo) mesmo com o mouse parado;
+   - são repelidas pelo cursor (mouse/toque) e voltam à base com mola.
+   Mobile-first: menos partículas em telas pequenas; consciente do tema;
+   render estático em prefers-reduced-motion.
    ========================================================= */
 (() => {
   "use strict";
@@ -13,10 +15,16 @@
   const ctx = canvas.getContext("2d", { alpha: true });
 
   const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const SHAPE = canvas.dataset.shape || "🌐";
 
-  // Paleta de "confetes" (Google) + neutros — a maioria é neutra.
-  const NEUTRAL = "rgba(20,20,20,0.55)";
+  // Paleta de "confetes" (Google) + neutros (a maioria é neutra).
   const COLORS = ["#4285f4", "#ea4335", "#fbbc05", "#34a853", "#8b5cff"];
+  function neutralColor() {
+    return document.documentElement.getAttribute("data-theme") === "dark"
+      ? "rgba(232,232,238,0.5)"
+      : "rgba(20,20,20,0.55)";
+  }
+  let NEUTRAL = neutralColor();
 
   let W = 0, H = 0, dpr = 1;
   let particles = [];
@@ -24,40 +32,84 @@
 
   const mouse = { x: -9999, y: -9999, active: false };
 
-  // Densidade: 1 partícula a cada ~9000px² (mais raro em telas pequenas)
+  function rand(min, max) { return Math.random() * (max - min) + min; }
+
+  // Quantidade: ~1 traço a cada 7000px² (mais denso que antes), com teto.
   function targetCount() {
-    const base = (W * H) / 9000;
-    const cap = window.innerWidth < 720 ? 90 : 260;
+    const base = (W * H) / (7000 * dpr * dpr);
+    const cap = window.innerWidth < 720 ? 150 : 420;
     return Math.min(Math.round(base), cap);
   }
 
-  function rand(min, max) { return Math.random() * (max - min) + min; }
+  /* ---------- Amostra os pontos de uma silhueta a partir de um glifo ---------- */
+  function sampleShape() {
+    const off = document.createElement("canvas");
+    off.width = W;
+    off.height = H;
+    const o = off.getContext("2d");
+    const size = Math.min(W, H) * (W > 760 * dpr ? 0.62 : 0.5);
+    // Desktop: silhueta à direita (texto fica à esquerda). Mobile: centralizada.
+    const cx = W * (W > 760 * dpr ? 0.72 : 0.5);
+    const cy = H * 0.5;
+    o.fillStyle = "#000";
+    o.textAlign = "center";
+    o.textBaseline = "middle";
+    o.font = `${size}px "Sora", system-ui, sans-serif`;
+    o.fillText(SHAPE, cx, cy);
 
-  function makeParticle() {
-    const colored = Math.random() < 0.32;
-    const x = Math.random() * W;
-    const y = Math.random() * H;
+    const data = o.getImageData(0, 0, W, H).data;
+    const step = Math.max(4, Math.round(size / 42)); // densidade da amostragem
+    const pts = [];
+    for (let y = 0; y < H; y += step) {
+      for (let x = 0; x < W; x += step) {
+        if (data[(y * W + x) * 4 + 3] > 130) pts.push({ x, y });
+      }
+    }
+    // embaralha para distribuir bem
+    for (let i = pts.length - 1; i > 0; i--) {
+      const j = (Math.random() * (i + 1)) | 0;
+      [pts[i], pts[j]] = [pts[j], pts[i]];
+    }
+    return pts;
+  }
+
+  function makeParticle(bx, by, inShape) {
+    const colored = Math.random() < (inShape ? 0.4 : 0.28);
     return {
-      bx: x, by: y,          // posição-base (âncora)
-      x, y,                  // posição atual
-      vx: 0, vy: 0,          // velocidade
-      len: rand(6, 14) * dpr,        // comprimento do traço
-      angle: rand(0, Math.PI),       // rotação
-      spin: rand(-0.02, 0.02),       // giro sutil quando em movimento
+      bx, by,                        // âncora (na silhueta ou aleatória)
+      x: bx + rand(-40, 40), y: by + rand(-40, 40),
+      vx: 0, vy: 0,
+      len: rand(inShape ? 5 : 6, inShape ? 11 : 15) * dpr,
+      angle: rand(0, Math.PI),
+      spin: rand(-0.012, 0.012),     // giro contínuo (vida própria)
+      amp: rand(inShape ? 1.2 : 3, inShape ? 3.5 : 8) * dpr, // wobble
+      freqX: rand(0.3, 0.9),
+      freqY: rand(0.3, 0.9),
+      phase: rand(0, Math.PI * 2),
+      neutral: !colored,
       color: colored ? COLORS[(Math.random() * COLORS.length) | 0] : NEUTRAL,
-      width: (colored ? rand(1.6, 2.6) : rand(1, 1.6)) * dpr,
-      alpha: colored ? rand(0.7, 1) : rand(0.25, 0.5),
+      width: (colored ? rand(1.6, 2.6) : rand(1, 1.7)) * dpr,
+      alpha: colored ? rand(0.7, 1) : rand(0.28, 0.55),
     };
   }
 
   function build() {
-    particles = Array.from({ length: targetCount() }, makeParticle);
+    const total = targetCount();
+    const shapePts = sampleShape();
+    const shapeCount = Math.min(shapePts.length, Math.floor(total * 0.6));
+    particles = [];
+    for (let i = 0; i < shapeCount; i++) {
+      particles.push(makeParticle(shapePts[i].x, shapePts[i].y, true));
+    }
+    for (let i = shapeCount; i < total; i++) {
+      particles.push(makeParticle(Math.random() * W, Math.random() * H, false));
+    }
   }
 
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = canvas.clientWidth * dpr;
-    H = canvas.clientHeight * dpr;
+    W = Math.max(1, Math.round(canvas.clientWidth * dpr));
+    H = Math.max(1, Math.round(canvas.clientHeight * dpr));
     canvas.width = W;
     canvas.height = H;
     build();
@@ -68,7 +120,7 @@
     const dx = Math.cos(p.angle) * p.len * 0.5;
     const dy = Math.sin(p.angle) * p.len * 0.5;
     ctx.globalAlpha = p.alpha;
-    ctx.strokeStyle = p.color;
+    ctx.strokeStyle = p.neutral ? NEUTRAL : p.color;
     ctx.lineWidth = p.width;
     ctx.lineCap = "round";
     ctx.beginPath();
@@ -79,24 +131,29 @@
 
   function drawStatic() {
     ctx.clearRect(0, 0, W, H);
-    particles.forEach(drawDash);
+    for (const p of particles) { p.x = p.bx; p.y = p.by; drawDash(p); }
     ctx.globalAlpha = 1;
   }
 
-  // Física: repulsão dentro do raio + mola de volta à base
-  const RADIUS = 130;          // raio de influência do cursor (em px CSS)
-  const FORCE = 5.0;           // intensidade da repulsão
-  const SPRING = 0.045;        // força da mola de retorno
-  const FRICTION = 0.86;       // amortecimento
+  /* ---------- Física: vida própria + repulsão + mola ---------- */
+  const RADIUS = 140;     // raio de influência do cursor (px CSS)
+  const FORCE = 5.5;      // intensidade da repulsão
+  const SPRING = 0.05;    // força da mola de retorno
+  const FRICTION = 0.85;  // amortecimento
 
-  function tick() {
+  function tick(now) {
     ctx.clearRect(0, 0, W, H);
+    const t = now * 0.001;
     const r = RADIUS * dpr;
     const r2 = r * r;
     const mx = mouse.x * dpr;
     const my = mouse.y * dpr;
 
     for (const p of particles) {
+      // alvo = âncora + oscilação senoidal (movimento "vivo")
+      const tx = p.bx + Math.sin(t * p.freqX + p.phase) * p.amp;
+      const ty = p.by + Math.cos(t * p.freqY + p.phase * 1.3) * p.amp;
+
       if (mouse.active) {
         const dx = p.x - mx;
         const dy = p.y - my;
@@ -106,16 +163,16 @@
           const f = (1 - d / r) * FORCE;
           p.vx += (dx / d) * f;
           p.vy += (dy / d) * f;
-          p.angle += p.spin * 4;   // gira mais ao ser empurrado
+          p.angle += p.spin * 5;
         }
       }
-      // mola de volta à âncora
-      p.vx += (p.bx - p.x) * SPRING;
-      p.vy += (p.by - p.y) * SPRING;
+      p.vx += (tx - p.x) * SPRING;
+      p.vy += (ty - p.y) * SPRING;
       p.vx *= FRICTION;
       p.vy *= FRICTION;
       p.x += p.vx;
       p.y += p.vy;
+      p.angle += p.spin;
 
       drawDash(p);
     }
@@ -123,19 +180,31 @@
     raf = requestAnimationFrame(tick);
   }
 
-  /* ---------- Eventos de ponteiro ---------- */
-  function onMove(x, y) { mouse.x = x; mouse.y = y; mouse.active = true; }
-  function onLeave() { mouse.active = false; mouse.x = -9999; mouse.y = -9999; }
+  /* ---------- Ponteiro (coords relativas ao canvas) ---------- */
+  function onMove(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    if (x >= 0 && y >= 0 && x <= rect.width && y <= rect.height) {
+      mouse.x = x; mouse.y = y; mouse.active = true;
+    } else {
+      mouse.active = false;
+    }
+  }
+  function onLeave() { mouse.active = false; }
 
   window.addEventListener("mousemove", (e) => onMove(e.clientX, e.clientY), { passive: true });
   window.addEventListener("mouseout", onLeave);
   window.addEventListener("touchmove", (e) => {
-    const t = e.touches[0];
-    if (t) onMove(t.clientX, t.clientY);
+    const tt = e.touches[0];
+    if (tt) onMove(tt.clientX, tt.clientY);
   }, { passive: true });
   window.addEventListener("touchend", onLeave);
 
-  /* ---------- Pausa quando a aba/elemento não está visível ---------- */
+  /* ---------- Tema: atualiza cor dos traços neutros ---------- */
+  window.addEventListener("themechange", () => { NEUTRAL = neutralColor(); });
+
+  /* ---------- Pausa quando a aba não está visível ---------- */
   function start() { if (!raf && !prefersReduced) raf = requestAnimationFrame(tick); }
   function stop() { if (raf) { cancelAnimationFrame(raf); raf = null; } }
   document.addEventListener("visibilitychange", () => {

@@ -1,6 +1,6 @@
 /* =========================================================
    DESIGN TOKENS — fonte única de verdade do visual.
-   Tema CLARO, inspirado no Google Antigravity.
+   Tema CLARO (:root) + tema ESCURO ([data-theme="dark"]).
    Mexa aqui para mudar a "cara" do site inteiro.
    ========================================================= */
 :root {
@@ -66,4 +66,25 @@
   --z-header: 50;
   --z-cursor: 90;
   --z-preloader: 100;
+
+  /* ----- Neon (cor da seção de destaque) ----- */
+  --neon: #38bdf8;
+  --neon-soft: rgba(56, 189, 248, 0.55);
+}
+
+/* ----- TEMA ESCURO ----- */
+[data-theme="dark"] {
+  --bg: #07070a;
+  --bg-elev: #101015;
+  --bg-blur: rgba(7, 7, 10, 0.72);
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-hover: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.22);
+
+  --text: #f3f3f6;
+  --text-dim: #9b9ba6;
+  --text-faint: #5e5e69;
+
+  --grid-dot: rgba(255, 255, 255, 0.12);
 }

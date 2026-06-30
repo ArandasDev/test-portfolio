@@ -18,6 +18,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 
+  <!-- Aplica o tema salvo antes da pintura, evitando flash -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("theme");
+        if (!t) t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    })();
+  </script>
+
   <link rel="stylesheet" href="css/reset.css" />
   <link rel="stylesheet" href="css/tokens.css" />
   <link rel="stylesheet" href="css/animations.css" />
@@ -30,12 +41,6 @@
       <span class="preloader__count" id="preloaderCount">0</span>
       <span class="preloader__pct">%</span>
     </div>
-  </div>
-
-  <!-- Fundo: grid pontilhado + campo de partículas (traços) reativo ao mouse -->
-  <div class="bg" aria-hidden="true">
-    <div class="bg__grid"></div>
-    <canvas class="bg__particles" id="particles"></canvas>
   </div>
 
   <!-- Cursor customizado (desktop) -->
@@ -57,15 +62,28 @@
       <a href="#contact" class="nav__link nav__link--cta" data-cursor="hover">Contato</a>
     </nav>
 
-    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
-      <span></span><span></span>
-    </button>
+    <div class="header__right">
+      <button class="theme-toggle" id="themeToggle" data-cursor="hover" aria-label="Alternar tema claro/escuro">
+        <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
+        <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+
+      <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
+        <span></span><span></span>
+      </button>
+    </div>
   </header>
 
   <main id="top">
 
     <!-- ============ HERO ============ -->
     <section class="hero" id="hero">
+      <!-- Fundo do hero: grid + partículas que formam silhueta e reagem ao mouse.
+           🔧 data-shape define a silhueta (emoji ou texto). Ex.: "🌐", "★", "NS" -->
+      <div class="hero__bg" aria-hidden="true">
+        <div class="hero__grid"></div>
+        <canvas class="hero__particles" id="particles" data-shape="🌐"></canvas>
+      </div>
       <div class="hero__inner">
         <p class="hero__eyebrow reveal" data-reveal>
           <span class="hero__status"></span>
@@ -301,26 +319,32 @@
       </ul>
     </section>
 
-    <!-- ============ CONTACT ============ -->
+    <!-- ============ CONTACT (bloco neon) ============ -->
     <section class="section contact" id="contact">
-      <div class="contact__inner">
-        <span class="section__index reveal" data-reveal>04</span>
-        <h2 class="contact__title">
-          <span class="line"><span class="line__inner" data-split>Vamos criar</span></span>
-          <span class="line"><span class="line__inner line__inner--accent" data-split>algo juntos.</span></span>
-        </h2>
-        <!-- 🔧 TROCAR: seu e-mail -->
-        <a href="mailto:contato@exemplo.com" class="contact__email" data-cursor="hover" data-magnetic>
-          contato@exemplo.com
-        </a>
+      <div class="neon">
+        <!-- Arco de luz neon (estilo Aircash) -->
+        <div class="neon__glow" aria-hidden="true"></div>
+        <div class="neon__arc" aria-hidden="true"></div>
 
-        <ul class="contact__socials reveal" data-reveal data-delay="0.2">
-          <!-- 🔧 TROCAR: seus links -->
-          <li><a href="#" data-cursor="hover">GitHub</a></li>
-          <li><a href="#" data-cursor="hover">LinkedIn</a></li>
-          <li><a href="#" data-cursor="hover">Dribbble</a></li>
-          <li><a href="#" data-cursor="hover">Instagram</a></li>
-        </ul>
+        <div class="contact__inner">
+          <span class="section__index reveal" data-reveal>04</span>
+          <h2 class="contact__title">
+            <span class="line"><span class="line__inner" data-split>Vamos criar</span></span>
+            <span class="line"><span class="line__inner line__inner--neon" data-split>algo juntos.</span></span>
+          </h2>
+          <!-- 🔧 TROCAR: seu e-mail -->
+          <a href="mailto:contato@exemplo.com" class="contact__email" data-cursor="hover" data-magnetic>
+            contato@exemplo.com
+          </a>
+
+          <ul class="contact__socials reveal" data-reveal data-delay="0.2">
+            <!-- 🔧 TROCAR: seus links -->
+            <li><a href="#" data-cursor="hover">GitHub</a></li>
+            <li><a href="#" data-cursor="hover">LinkedIn</a></li>
+            <li><a href="#" data-cursor="hover">Dribbble</a></li>
+            <li><a href="#" data-cursor="hover">Instagram</a></li>
+          </ul>
+        </div>
       </div>
     </section>
   </main>

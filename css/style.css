@@ -9,6 +9,7 @@ body {
   font-family: var(--font-body);
   font-size: var(--step-0);
   overflow-x: hidden;
+  transition: background-color .45s var(--ease), color .45s var(--ease);
 }
 
 body.is-locked { overflow: hidden; }
@@ -23,24 +24,25 @@ body.is-locked { overflow: hidden; }
 
 em { font-style: normal; color: var(--accent); }
 
-/* ---------- Fundo: grid pontilhado + campo de partículas ---------- */
-.bg {
-  position: fixed;
+/* ---------- Fundo do HERO: grid pontilhado + partículas ----------
+   (apenas o hero é animado/interativo; demais seções ficam lisas) */
+.hero__bg {
+  position: absolute;
   inset: 0;
   z-index: var(--z-bg);
   overflow: hidden;
   pointer-events: none;
 }
-.bg__grid {
+.hero__grid {
   position: absolute;
   inset: -2px;
   background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
   background-size: 30px 30px;
-  mask-image: radial-gradient(ellipse 90% 70% at 50% 35%, #000 35%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 35%, #000 35%, transparent 100%);
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 45%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 45%, #000 40%, transparent 100%);
   opacity: 0.6;
 }
-.bg__particles {
+.hero__particles {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -149,6 +151,35 @@ em { font-style: normal; color: var(--accent); }
 .nav__link--cta::after { display: none; }
 .nav__link--cta:hover { background: var(--surface-hover); }
 
+/* Agrupador à direita (tema + menu) */
+.header__right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Toggle de tema (sol/lua) */
+.theme-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: var(--surface);
+  transition: background .3s var(--ease), border-color .3s var(--ease), transform .3s var(--ease);
+}
+.theme-toggle:hover { background: var(--surface-hover); transform: rotate(12deg); }
+.theme-toggle svg { position: absolute; transition: opacity .3s var(--ease), transform .4s var(--ease); }
+/* claro mostra a lua (para ir ao escuro); escuro mostra o sol */
+.icon-moon { opacity: 1; transform: rotate(0); }
+.icon-sun { opacity: 0; transform: rotate(-90deg); }
+[data-theme="dark"] .icon-moon { opacity: 0; transform: rotate(90deg); }
+[data-theme="dark"] .icon-sun { opacity: 1; transform: rotate(0); }
+
 /* Botão hambúrguer */
 .menu-toggle {
   display: flex;
@@ -195,7 +226,10 @@ em { font-style: normal; color: var(--accent); }
   max-width: var(--maxw);
   margin-inline: auto;
   padding: 7rem var(--gutter) 4rem;
+  overflow: hidden;
 }
+.hero__inner { position: relative; z-index: 2; }
+.hero__scroll { z-index: 2; }
 .hero__eyebrow {
   display: inline-flex;
   align-items: center;
@@ -528,9 +562,49 @@ em { font-style: normal; color: var(--accent); }
 }
 .cap:hover .cap__arrow { opacity: 1; transform: translate(0,0); color: var(--accent); }
 
-/* ---------- Contact ---------- */
+/* ---------- Contact (bloco neon) ---------- */
 .contact { text-align: center; }
-.contact__inner { max-width: var(--maxw); margin-inline: auto; }
+
+/* Painel neon: escuro nos dois temas, com arco de luz (estilo Aircash) */
+.neon {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: radial-gradient(120% 100% at 50% 0%, #0c1118, #05070b 70%);
+  color: #f4f7fb;
+  padding: clamp(3rem, 9vw, 7rem) var(--gutter) clamp(6rem, 16vw, 11rem);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  isolation: isolate;
+}
+/* halo difuso de luz na linha do horizonte */
+.neon__glow {
+  position: absolute;
+  left: 50%;
+  top: 66%;
+  width: 80%;
+  height: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse at 50% 50%, var(--neon-soft), transparent 70%);
+  filter: blur(30px);
+  z-index: -1;
+}
+/* arco/horizonte luminoso (estilo Aircash) */
+.neon__arc {
+  position: absolute;
+  left: 50%;
+  top: 66%;
+  width: 165%;
+  aspect-ratio: 1 / 1;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #0a1a26, #081320);
+  border-top: 2px solid rgba(186, 230, 253, 0.95);
+  box-shadow:
+    0 0 90px 8px var(--neon-soft),
+    0 -2px 26px 4px rgba(125, 211, 252, 0.8);
+  z-index: -1;
+}
+.contact__inner { position: relative; max-width: var(--maxw); margin-inline: auto; }
 .contact__title {
   font-family: var(--font-display);
   font-weight: 800;
@@ -540,16 +614,21 @@ em { font-style: normal; color: var(--accent); }
   margin-block: var(--space-md);
 }
 .contact .line { display: inline-block; }
+.line__inner--neon {
+  color: var(--neon);
+  text-shadow: 0 0 28px var(--neon-soft);
+}
 .contact__email {
   display: inline-block;
   font-family: var(--font-display);
   font-size: var(--step-2);
   font-weight: 500;
-  border-bottom: 1px solid var(--border-strong);
+  color: #f4f7fb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
   padding-bottom: 0.3rem;
-  transition: color .3s var(--ease), border-color .3s var(--ease);
+  transition: color .3s var(--ease), border-color .3s var(--ease), text-shadow .3s var(--ease);
 }
-.contact__email:hover { color: var(--accent); border-color: var(--accent); }
+.contact__email:hover { color: var(--neon); border-color: var(--neon); text-shadow: 0 0 24px var(--neon-soft); }
 .contact__socials {
   display: flex;
   flex-wrap: wrap;
@@ -558,11 +637,11 @@ em { font-style: normal; color: var(--accent); }
   margin-top: var(--space-lg);
 }
 .contact__socials a {
-  color: var(--text-dim);
+  color: rgba(244, 247, 251, 0.7);
   font-size: var(--step-0);
   transition: color .3s var(--ease);
 }
-.contact__socials a:hover { color: var(--text); }
+.contact__socials a:hover { color: var(--neon); }
 
 /* ---------- Footer ---------- */
 .footer {
