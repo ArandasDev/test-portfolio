@@ -31,7 +31,7 @@
   let particles = [];
   let raf = null;
 
-  const mouse = { x: -9999, y: -9999, active: false };
+  const mouse = { x: -9999, y: -9999, px: -9999, py: -9999, active: false };
 
   function rand(min, max) { return Math.random() * (max - min) + min; }
 
@@ -173,8 +173,8 @@
   }
 
   /* ---------- Física: onda coletiva + ondulação de "gota" + mola ---------- */
-  const SPRING = 0.07;    // força da mola de retorno
-  const FRICTION = 0.84;  // amortecimento (mantém o movimento suave)
+  const SPRING = 0.05;    // mola de retorno à âncora (mais suave = voa mais longe)
+  const FRICTION = 0.88;  // resistência do ar (perde velocidade gradualmente)
   // campo de fluxo: a direção depende da posição (vizinhos se movem juntos)
   const WAVE_SCALE = 0.005;  // "comprimento" da onda no espaço
   const WAVE_SPEED = 0.5;    // velocidade com que a onda viaja no tempo
@@ -182,10 +182,11 @@
   // (com rastro) ao afastar — imitando o Antigravity.
   const REVEAL_RADIUS = 430; // raio em que os traços se intensificam (px CSS)
   const BASE_VIS = 0.18;     // visibilidade mínima (presentes mesmo sem o mouse)
-  const PULL = 0.35;         // atração suave em direção ao cursor (0..1)
-  const WAVE_LEN = 65;       // distância entre cristas da onda radial (px CSS)
-  const WAVE_AMP = 16;       // deslocamento da onda (px CSS)
-  const FOLLOW_WAVE_SPEED = 5;
+  // VENTO / SOPRO do mouse
+  const WIND_RADIUS = 200;   // alcance do sopro (px CSS)
+  const BLOW_MIN = 0.4;      // empurrão mínimo (mesmo com mouse lento)
+  const BLOW_SPEED = 0.5;    // o quanto a velocidade do mouse intensifica o sopro
+  const WIND_DRAG = 0.22;    // arrasto na direção do movimento do mouse
 
   function tick(now) {
     ctx.clearRect(0, 0, W, H);
@@ -194,44 +195,49 @@
     const mx = mouse.x * dpr;
     const my = mouse.y * dpr;
     const rr = REVEAL_RADIUS * dpr;
-    const wk = (Math.PI * 2) / (WAVE_LEN * dpr);
-    const wamp = WAVE_AMP * dpr;
+    const windR = WIND_RADIUS * dpr;
+    // velocidade do mouse neste quadro (em px de canvas), limitada
+    if (mouse.px < -9000) { mouse.px = mouse.x; mouse.py = mouse.y; }
+    let mvx = (mouse.x - mouse.px) * dpr;
+    let mvy = (mouse.y - mouse.py) * dpr;
+    const mspeed = Math.min(Math.hypot(mvx, mvy), 90 * dpr);
+    const blowMin = BLOW_MIN * dpr;
+    const minSp = (0.7 * dpr) * (0.7 * dpr);
 
     for (const p of particles) {
-      // movimento de base "vivo" (onda de fluxo suave)
+      // movimento de base "vivo" (onda de fluxo suave) → âncora oscilante
       const flow = Math.sin(p.bx * WAVE_SCALE + t * WAVE_SPEED) +
                    Math.cos(p.by * WAVE_SCALE + t * WAVE_SPEED * 0.9);
-      let ang = flow * 1.6 + p.phase * 0.2;
-      let tx = p.bx + Math.cos(ang) * p.amp;
-      let ty = p.by + Math.sin(ang) * p.amp;
+      const ang = flow * 1.6 + p.phase * 0.2;
+      const tx = p.bx + Math.cos(ang) * p.amp;
+      const ty = p.by + Math.sin(ang) * p.amp;
 
-      // REVELAÇÃO + ONDA ao redor do cursor.
-      // Baseline: sempre um mínimo visível (sem "susto" ao mover o mouse).
+      // REVELAÇÃO: baseline + realce perto do cursor
       let targetVis = BASE_VIS;
       if (mouse.active) {
         const dx = mx - p.bx;
         const dy = my - p.by;
         const d = Math.hypot(dx, dy);
-        if (d < rr && d > 0.01) {
+        if (d < rr) {
           const u = 1 - d / rr;
           targetVis = BASE_VIS + (1 - BASE_VIS) * u * u * (3 - 2 * u); // smoothstep
-          // onda radial viajante sobre o cluster (o "efeito de onda neles")
-          const phase = d * wk - t * FOLLOW_WAVE_SPEED;
-          const wave = Math.sin(phase);
-          // atração suave para o cursor + deslocamento da onda
-          const pull = u * u * PULL;
-          tx += dx * pull + (dx / d) * wave * wamp * u;
-          ty += dy * pull + (dy / d) * wave * wamp * u;
-          // traço alinhado à direção do cursor, ondulando
-          ang = Math.atan2(dy, dx) + wave * 0.6;
+        }
+        // VENTO / SOPRO: empurra os traços para LONGE do cursor com velocidade,
+        // mais forte quanto mais rápido o mouse anda; some aos poucos pelo atrito.
+        if (d < windR && d > 0.01) {
+          const f = 1 - d / windR;
+          const push = f * f * (blowMin + mspeed * BLOW_SPEED);
+          p.vx += (-dx / d) * push;          // empurra para fora do cursor
+          p.vy += (-dy / d) * push;
+          p.vx += mvx * f * WIND_DRAG;        // arrasto na direção do movimento
+          p.vy += mvy * f * WIND_DRAG;
         }
       }
-      p.angle = ang;
 
       // visibilidade: aparece rápido, some devagar (rastro)
-      const ease = targetVis > p.vis ? 0.2 : 0.045;
-      p.vis += (targetVis - p.vis) * ease;
+      p.vis += (targetVis - p.vis) * (targetVis > p.vis ? 0.2 : 0.045);
 
+      // mola de volta à âncora + resistência do ar
       p.vx += (tx - p.x) * SPRING;
       p.vy += (ty - p.y) * SPRING;
       p.vx *= FRICTION;
@@ -239,8 +245,14 @@
       p.x += p.vx;
       p.y += p.vy;
 
+      // orientação: voando → ao longo da velocidade; quase parado → fluxo
+      p.angle = (p.vx * p.vx + p.vy * p.vy) > minSp ? Math.atan2(p.vy, p.vx) : ang;
+
       if (p.vis > 0.02) drawDash(p);
     }
+
+    mouse.px = mouse.x;
+    mouse.py = mouse.y;
     ctx.globalAlpha = 1;
     raf = requestAnimationFrame(tick);
   }
