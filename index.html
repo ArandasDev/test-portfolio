@@ -78,9 +78,10 @@
 
     <!-- ============ HERO ============ -->
     <section class="hero" id="hero">
-      <!-- Fundo do hero: apenas o grid pontilhado. -->
+      <!-- Fundo do hero: grid pontilhado + canvas de rastros fluidos -->
       <div class="hero__bg" aria-hidden="true">
         <div class="hero__grid"></div>
+        <canvas class="hero__trails" id="heroTrails"></canvas>
       </div>
       <div class="hero__inner">
         <p class="hero__eyebrow reveal" data-reveal>
@@ -384,6 +385,7 @@
     </div>
   </footer>
 
+  <script src="js/hero-trails.js" defer></script>
   <script src="js/main.js" defer></script>
 </body>
 </html>
