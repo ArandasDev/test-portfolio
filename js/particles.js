@@ -160,11 +160,14 @@
     ctx.globalAlpha = 1;
   }
 
-  /* ---------- Física: vida própria + repulsão + mola ---------- */
+  /* ---------- Física: onda coletiva + repulsão + mola ---------- */
   const RADIUS = 140;     // raio de influência do cursor (px CSS)
   const FORCE = 5.5;      // intensidade da repulsão
   const SPRING = 0.05;    // força da mola de retorno
   const FRICTION = 0.85;  // amortecimento
+  // campo de fluxo: a direção depende da posição (vizinhos se movem juntos)
+  const WAVE_SCALE = 0.005;  // "comprimento" da onda no espaço
+  const WAVE_SPEED = 0.5;    // velocidade com que a onda viaja no tempo
 
   function tick(now) {
     ctx.clearRect(0, 0, W, H);
@@ -175,9 +178,16 @@
     const my = mouse.y * dpr;
 
     for (const p of particles) {
-      // alvo = âncora + oscilação senoidal (movimento "vivo")
-      const tx = p.bx + Math.sin(t * p.freqX + p.phase) * p.amp;
-      const ty = p.by + Math.cos(t * p.freqY + p.phase * 1.3) * p.amp;
+      // ONDA: direção vinda de um campo de fluxo que viaja no tempo.
+      // Como depende de (bx, by), traços vizinhos apontam para o mesmo lado
+      // → forma uma onda coerente percorrendo a tela, mesmo com o mouse parado.
+      const flow = Math.sin(p.bx * WAVE_SCALE + t * WAVE_SPEED) +
+                   Math.cos(p.by * WAVE_SCALE + t * WAVE_SPEED * 0.9);
+      const ang = flow * 1.6 + p.phase * 0.2;
+      const tx = p.bx + Math.cos(ang) * p.amp;
+      const ty = p.by + Math.sin(ang) * p.amp;
+      // traço alinhado à correnteza do fluxo
+      p.angle = ang;
 
       if (mouse.active) {
         const dx = p.x - mx;
@@ -188,7 +198,6 @@
           const f = (1 - d / r) * FORCE;
           p.vx += (dx / d) * f;
           p.vy += (dy / d) * f;
-          p.angle += p.spin * 5;
         }
       }
       p.vx += (tx - p.x) * SPRING;
@@ -197,7 +206,6 @@
       p.vy *= FRICTION;
       p.x += p.vx;
       p.y += p.vy;
-      p.angle += p.spin;
 
       drawDash(p);
     }
