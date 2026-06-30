@@ -1,0 +1,73 @@
+/* =========================================================
+   ANIMATIONS — keyframes + estados de reveal.
+   Tudo é desligado em prefers-reduced-motion (acessibilidade).
+   ========================================================= */
+
+/* ----- Reveal genérico (controlado por IntersectionObserver no JS) ----- */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity .8s var(--ease-out), transform .8s var(--ease-out);
+  transition-delay: var(--reveal-delay, 0s);
+}
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ----- Split de título: cada linha sobe de baixo ----- */
+.line__inner {
+  transform: translateY(110%);
+  transition: transform 1s var(--ease-out);
+  transition-delay: var(--line-delay, 0s);
+}
+.is-revealed .line__inner,
+.line__inner.is-revealed { transform: translateY(0); }
+
+/* ----- Auroras flutuando ----- */
+@keyframes aurora-1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(12vmax, 8vmax) scale(1.2); }
+}
+@keyframes aurora-2 {
+  0%   { transform: translate(0, 0) scale(1.1); }
+  100% { transform: translate(-10vmax, -6vmax) scale(1); }
+}
+@keyframes aurora-3 {
+  0%   { transform: translate(-50%, 0) scale(1); }
+  100% { transform: translate(-40%, -10vmax) scale(1.3); }
+}
+
+/* ----- Pulso do status "disponível" ----- */
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(74,222,128,0.5); }
+  70%  { box-shadow: 0 0 0 10px rgba(74,222,128,0); }
+  100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); }
+}
+
+/* ----- Dica de scroll (linha que corre) ----- */
+@keyframes scroll-hint {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ----- Marquee ----- */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* =========================================================
+   ACESSIBILIDADE: desliga movimento se o usuário pedir
+   ========================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  [data-reveal] { opacity: 1; transform: none; }
+  .line__inner { transform: none; }
+  .bg__aurora { animation: none; }
+  .marquee__track { animation: none; }
+}

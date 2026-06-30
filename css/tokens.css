@@ -1,0 +1,62 @@
+/* =========================================================
+   DESIGN TOKENS — fonte única de verdade do visual.
+   Mexa aqui para mudar a "cara" do site inteiro.
+   ========================================================= */
+:root {
+  /* ----- Cores base ----- */
+  --bg: #050507;
+  --bg-elev: #0b0b10;
+  --surface: rgba(255, 255, 255, 0.03);
+  --surface-hover: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  /* ----- Texto ----- */
+  --text: #f3f3f6;
+  --text-dim: #9b9ba6;
+  --text-faint: #5e5e69;
+
+  /* ----- Acento (gradiente aurora roxo→azul) ----- */
+  --accent: #8b5cff;
+  --accent-2: #5b8cff;
+  --accent-3: #c06cff;
+  --gradient: linear-gradient(120deg, var(--accent-3), var(--accent), var(--accent-2));
+
+  /* ----- Tipografia ----- */
+  --font-display: "Sora", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+
+  /* Escala fluida (mobile-first → escala sozinha até desktop) */
+  --step--1: clamp(0.78rem, 0.74rem + 0.2vw, 0.88rem);
+  --step-0:  clamp(0.95rem, 0.9rem + 0.25vw, 1.05rem);
+  --step-1:  clamp(1.15rem, 1.05rem + 0.5vw, 1.4rem);
+  --step-2:  clamp(1.5rem, 1.3rem + 1vw, 2.1rem);
+  --step-3:  clamp(2.1rem, 1.7rem + 2vw, 3.4rem);
+  --step-4:  clamp(2.8rem, 2rem + 4vw, 6rem);
+  --step-5:  clamp(3.4rem, 2.2rem + 6vw, 8.5rem);
+
+  /* ----- Espaçamento ----- */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 2rem;
+  --space-lg: clamp(3rem, 6vw, 6rem);
+  --space-xl: clamp(5rem, 12vw, 11rem);
+
+  --gutter: clamp(1.25rem, 5vw, 5rem);
+  --maxw: 1320px;
+  --radius: 18px;
+  --radius-lg: 28px;
+
+  /* ----- Movimento ----- */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur: 0.6s;
+  --dur-fast: 0.3s;
+
+  /* ----- Camadas ----- */
+  --z-bg: 0;
+  --z-content: 1;
+  --z-header: 50;
+  --z-cursor: 90;
+  --z-preloader: 100;
+}

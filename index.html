@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#050507" />
+
+  <!-- 🔧 TROCAR: título e descrição (SEO / aba do navegador) -->
+  <title>Nome Sobrenome — Product Engineer & Designer</title>
+  <meta name="description" content="Interfaces que unem engenharia e design. Produtos digitais pensados do conceito ao pixel." />
+
+  <!-- Open Graph (compartilhamento em redes) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Nome Sobrenome — Product Engineer & Designer" />
+  <meta property="og:description" content="Interfaces que unem engenharia e design." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- Preloader -->
+  <div class="preloader" id="preloader" aria-hidden="true">
+    <div class="preloader__mark">
+      <span class="preloader__count" id="preloaderCount">0</span>
+      <span class="preloader__pct">%</span>
+    </div>
+  </div>
+
+  <!-- Fundo: aurora + grid pontilhado -->
+  <div class="bg" aria-hidden="true">
+    <div class="bg__grid"></div>
+    <div class="bg__aurora bg__aurora--1"></div>
+    <div class="bg__aurora bg__aurora--2"></div>
+    <div class="bg__aurora bg__aurora--3"></div>
+    <div class="bg__noise"></div>
+  </div>
+
+  <!-- Cursor customizado (desktop) -->
+  <div class="cursor" id="cursor" aria-hidden="true"></div>
+  <div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
+
+  <!-- Header / Nav -->
+  <header class="header" id="header">
+    <a href="#top" class="brand" data-cursor="hover">
+      <span class="brand__dot"></span>
+      <!-- 🔧 TROCAR: suas iniciais ou nome curto -->
+      <span class="brand__name">NS</span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Navegação principal">
+      <a href="#work" class="nav__link" data-cursor="hover">Trabalho</a>
+      <a href="#about" class="nav__link" data-cursor="hover">Sobre</a>
+      <a href="#capabilities" class="nav__link" data-cursor="hover">Capacidades</a>
+      <a href="#contact" class="nav__link nav__link--cta" data-cursor="hover">Contato</a>
+    </nav>
+
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
+      <span></span><span></span>
+    </button>
+  </header>
+
+  <main id="top">
+
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="hero">
+      <div class="hero__inner">
+        <p class="hero__eyebrow reveal" data-reveal>
+          <span class="hero__status"></span>
+          <!-- 🔧 TROCAR: status / disponibilidade -->
+          Disponível para novos projetos · 2026
+        </p>
+
+        <h1 class="hero__title">
+          <!-- Cada .line é animada por palavra/linha via JS -->
+          <span class="line"><span class="line__inner" data-split>Eu desenho</span></span>
+          <span class="line"><span class="line__inner" data-split>e construo</span></span>
+          <span class="line"><span class="line__inner line__inner--accent" data-split>produtos digitais.</span></span>
+        </h1>
+
+        <p class="hero__lead reveal" data-reveal data-delay="0.2">
+          <!-- 🔧 TROCAR: sua frase de impacto (sem "sou top/sênior/expert") -->
+          Da arquitetura de código ao último pixel da interface — transformo
+          ideias complexas em experiências que parecem simples.
+        </p>
+
+        <div class="hero__actions reveal" data-reveal data-delay="0.35">
+          <a href="#work" class="btn btn--primary" data-cursor="hover" data-magnetic>
+            <span>Ver trabalho</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a href="#contact" class="btn btn--ghost" data-cursor="hover" data-magnetic>
+            <span>Vamos conversar</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="hero__scroll reveal" data-reveal data-delay="0.6">
+        <span>Role</span>
+        <span class="hero__scroll-line"></span>
+      </div>
+    </section>
+
+    <!-- ============ MARQUEE ============ -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        <!-- 🔧 TROCAR: palavras-chave do seu trabalho -->
+        <span>Product Design</span><span class="marquee__sep">✦</span>
+        <span>Front-end</span><span class="marquee__sep">✦</span>
+        <span>Design Systems</span><span class="marquee__sep">✦</span>
+        <span>Motion</span><span class="marquee__sep">✦</span>
+        <span>Prototipagem</span><span class="marquee__sep">✦</span>
+        <span>Product Design</span><span class="marquee__sep">✦</span>
+        <span>Front-end</span><span class="marquee__sep">✦</span>
+        <span>Design Systems</span><span class="marquee__sep">✦</span>
+        <span>Motion</span><span class="marquee__sep">✦</span>
+        <span>Prototipagem</span><span class="marquee__sep">✦</span>
+      </div>
+    </div>
+
+    <!-- ============ WORK ============ -->
+    <section class="section work" id="work">
+      <div class="section__head">
+        <span class="section__index reveal" data-reveal>01</span>
+        <h2 class="section__title reveal" data-reveal>Trabalho selecionado</h2>
+        <p class="section__sub reveal" data-reveal data-delay="0.1">
+          Uma amostra de projetos onde código e design caminham juntos.
+        </p>
+      </div>
+
+      <div class="projects">
+        <!-- 🔧 TROCAR: cada card é um projeto. Duplique/edite à vontade. -->
+        <article class="project reveal" data-reveal>
+          <a href="#" class="project__link" data-cursor="view" aria-label="Ver projeto Aurora">
+            <div class="project__media">
+              <div class="project__visual project__visual--1"></div>
+            </div>
+            <div class="project__meta">
+              <div class="project__row">
+                <h3 class="project__name">Aurora</h3>
+                <span class="project__year">2025</span>
+              </div>
+              <p class="project__desc">Plataforma SaaS de analytics — design system + front-end completo.</p>
+              <ul class="project__tags">
+                <li>Design System</li><li>React</li><li>Motion</li>
+              </ul>
+            </div>
+          </a>
+        </article>
+
+        <article class="project reveal" data-reveal data-delay="0.1">
+          <a href="#" class="project__link" data-cursor="view" aria-label="Ver projeto Nimbus">
+            <div class="project__media">
+              <div class="project__visual project__visual--2"></div>
+            </div>
+            <div class="project__meta">
+              <div class="project__row">
+                <h3 class="project__name">Nimbus</h3>
+                <span class="project__year">2024</span>
+              </div>
+              <p class="project__desc">App financeiro mobile-first com foco em microinterações.</p>
+              <ul class="project__tags">
+                <li>Mobile</li><li>UI/UX</li><li>Prototipagem</li>
+              </ul>
+            </div>
+          </a>
+        </article>
+
+        <article class="project reveal" data-reveal>
+          <a href="#" class="project__link" data-cursor="view" aria-label="Ver projeto Vertex">
+            <div class="project__media">
+              <div class="project__visual project__visual--3"></div>
+            </div>
+            <div class="project__meta">
+              <div class="project__row">
+                <h3 class="project__name">Vertex</h3>
+                <span class="project__year">2024</span>
+              </div>
+              <p class="project__desc">Landing interativa com WebGL e narrativa em scroll.</p>
+              <ul class="project__tags">
+                <li>WebGL</li><li>Front-end</li><li>Storytelling</li>
+              </ul>
+            </div>
+          </a>
+        </article>
+
+        <article class="project reveal" data-reveal data-delay="0.1">
+          <a href="#" class="project__link" data-cursor="view" aria-label="Ver projeto Pulse">
+            <div class="project__media">
+              <div class="project__visual project__visual--4"></div>
+            </div>
+            <div class="project__meta">
+              <div class="project__row">
+                <h3 class="project__name">Pulse</h3>
+                <span class="project__year">2023</span>
+              </div>
+              <p class="project__desc">Dashboard em tempo real para times de produto.</p>
+              <ul class="project__tags">
+                <li>Data Viz</li><li>TypeScript</li><li>UX</li>
+              </ul>
+            </div>
+          </a>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ ABOUT ============ -->
+    <section class="section about" id="about">
+      <div class="section__head">
+        <span class="section__index reveal" data-reveal>02</span>
+        <h2 class="section__title reveal" data-reveal>Sobre</h2>
+      </div>
+
+      <div class="about__grid">
+        <p class="about__statement reveal" data-reveal>
+          <!-- 🔧 TROCAR: manifesto curto. Mostre densidade, não títulos. -->
+          Trabalho na fronteira entre engenharia e design. Acredito que
+          interface boa é aquela que ninguém percebe — porque simplesmente
+          <em>funciona</em>. Cada decisão, do espaçamento à transição, tem motivo.
+        </p>
+
+        <div class="about__cols">
+          <div class="about__col reveal" data-reveal data-delay="0.1">
+            <span class="about__num" data-count="8">0</span>
+            <span class="about__label">anos transformando ideias em produto</span>
+          </div>
+          <div class="about__col reveal" data-reveal data-delay="0.2">
+            <span class="about__num" data-count="40" data-suffix="+">0</span>
+            <span class="about__label">projetos entregues</span>
+          </div>
+          <div class="about__col reveal" data-reveal data-delay="0.3">
+            <span class="about__num" data-count="12" data-suffix="+">0</span>
+            <span class="about__label">times e marcas atendidas</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CAPABILITIES ============ -->
+    <section class="section capabilities" id="capabilities">
+      <div class="section__head">
+        <span class="section__index reveal" data-reveal>03</span>
+        <h2 class="section__title reveal" data-reveal>Capacidades</h2>
+        <p class="section__sub reveal" data-reveal data-delay="0.1">
+          O que entrego, ponta a ponta.
+        </p>
+      </div>
+
+      <ul class="caps">
+        <!-- 🔧 TROCAR: suas competências reais -->
+        <li class="cap reveal" data-reveal data-cursor="hover">
+          <span class="cap__index">01</span>
+          <h3 class="cap__title">Product Design</h3>
+          <p class="cap__desc">Pesquisa, fluxos, wireframes e UI de alta fidelidade.</p>
+          <span class="cap__arrow">↗</span>
+        </li>
+        <li class="cap reveal" data-reveal data-cursor="hover">
+          <span class="cap__index">02</span>
+          <h3 class="cap__title">Front-end Engineering</h3>
+          <p class="cap__desc">Interfaces performáticas, acessíveis e escaláveis.</p>
+          <span class="cap__arrow">↗</span>
+        </li>
+        <li class="cap reveal" data-reveal data-cursor="hover">
+          <span class="cap__index">03</span>
+          <h3 class="cap__title">Design Systems</h3>
+          <p class="cap__desc">Bibliotecas de componentes consistentes e documentadas.</p>
+          <span class="cap__arrow">↗</span>
+        </li>
+        <li class="cap reveal" data-reveal data-cursor="hover">
+          <span class="cap__index">04</span>
+          <h3 class="cap__title">Motion & Interação</h3>
+          <p class="cap__desc">Animações que guiam, dão feedback e dão vida ao produto.</p>
+          <span class="cap__arrow">↗</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ============ CONTACT ============ -->
+    <section class="section contact" id="contact">
+      <div class="contact__inner">
+        <span class="section__index reveal" data-reveal>04</span>
+        <h2 class="contact__title">
+          <span class="line"><span class="line__inner" data-split>Vamos criar</span></span>
+          <span class="line"><span class="line__inner line__inner--accent" data-split>algo juntos.</span></span>
+        </h2>
+        <!-- 🔧 TROCAR: seu e-mail -->
+        <a href="mailto:contato@exemplo.com" class="contact__email" data-cursor="hover" data-magnetic>
+          contato@exemplo.com
+        </a>
+
+        <ul class="contact__socials reveal" data-reveal data-delay="0.2">
+          <!-- 🔧 TROCAR: seus links -->
+          <li><a href="#" data-cursor="hover">GitHub</a></li>
+          <li><a href="#" data-cursor="hover">LinkedIn</a></li>
+          <li><a href="#" data-cursor="hover">Dribbble</a></li>
+          <li><a href="#" data-cursor="hover">Instagram</a></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>© <span id="year">2026</span> — Nome Sobrenome</span>
+    <span class="footer__made">Feito com HTML, CSS &amp; JS</span>
+  </footer>
+
+  <script src="js/main.js" defer></script>
+</body>
+</html>
