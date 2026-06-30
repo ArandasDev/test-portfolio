@@ -156,7 +156,6 @@
       const next = current === "dark" ? "light" : "dark";
       document.documentElement.setAttribute("data-theme", next);
       try { localStorage.setItem("theme", next); } catch (e) {}
-      window.dispatchEvent(new CustomEvent("themechange", { detail: next }));
     });
   }
 

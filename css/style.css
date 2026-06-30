@@ -31,8 +31,8 @@ body.is-locked { overflow: hidden; }
 
 em { font-style: normal; color: var(--accent); }
 
-/* ---------- Fundo do HERO: grid pontilhado + partículas ----------
-   (apenas o hero é animado/interativo; demais seções ficam lisas) */
+/* ---------- Fundo do HERO: grid pontilhado ----------
+   (demais seções ficam lisas) */
 .hero__bg {
   position: absolute;
   inset: 0;
@@ -227,7 +227,7 @@ em { font-style: normal; color: var(--accent); }
   padding-block: 7rem 4rem;
   overflow: hidden;
 }
-/* o fundo (grid + partículas) ocupa toda a largura da viewport */
+/* o fundo (grid) ocupa toda a largura da viewport */
 .hero__bg { inset: 0; }
 /* o conteúdo permanece alinhado à coluna central */
 .hero__inner {
