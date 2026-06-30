@@ -146,15 +146,19 @@
   let clock = 0; // tempo atual (s), atualizado no tick
 
   function drawDash(p) {
-    const dx = Math.cos(p.angle) * p.len * 0.5;
-    const dy = Math.sin(p.angle) * p.len * 0.5;
+    // tamanho/grossura relativos à proximidade do cursor (p.vis): perto fica
+    // maior e mais grosso, longe fica menor e fino.
+    const sc = 0.55 + p.vis * 0.8;          // ~0.55 (longe) → ~1.35 (no cursor)
+    const half = p.len * 0.5 * sc;
+    const dx = Math.cos(p.angle) * half;
+    const dy = Math.sin(p.angle) * half;
     ctx.globalAlpha = p.alpha * p.vis;
     // traços coloridos trocam de cor continuamente (matiz girando no tempo +
     // offset por posição = a cor "varre" a tela, como o gradiente do card)
     ctx.strokeStyle = p.neutral
       ? NEUTRAL
       : `hsl(${(clock * HUE_SPEED + p.hueOffset) % 360}, 85%, 60%)`;
-    ctx.lineWidth = p.width;
+    ctx.lineWidth = Math.max(0.6 * dpr, p.width * (0.7 + p.vis * 0.7));
     ctx.lineCap = "round";
     ctx.beginPath();
     ctx.moveTo(p.x - dx, p.y - dy);
@@ -176,7 +180,8 @@
   const WAVE_SPEED = 0.5;    // velocidade com que a onda viaja no tempo
   // os traços só existem EM VOLTA do cursor; revelam ao aproximar e somem
   // (com rastro) ao afastar — imitando o Antigravity.
-  const REVEAL_RADIUS = 320; // raio em que os traços aparecem (px CSS)
+  const REVEAL_RADIUS = 430; // raio em que os traços se intensificam (px CSS)
+  const BASE_VIS = 0.18;     // visibilidade mínima (presentes mesmo sem o mouse)
   const PULL = 0.35;         // atração suave em direção ao cursor (0..1)
   const WAVE_LEN = 65;       // distância entre cristas da onda radial (px CSS)
   const WAVE_AMP = 16;       // deslocamento da onda (px CSS)
@@ -200,15 +205,16 @@
       let tx = p.bx + Math.cos(ang) * p.amp;
       let ty = p.by + Math.sin(ang) * p.amp;
 
-      // REVELAÇÃO + ONDA ao redor do cursor
-      let targetVis = 0;
+      // REVELAÇÃO + ONDA ao redor do cursor.
+      // Baseline: sempre um mínimo visível (sem "susto" ao mover o mouse).
+      let targetVis = BASE_VIS;
       if (mouse.active) {
         const dx = mx - p.bx;
         const dy = my - p.by;
         const d = Math.hypot(dx, dy);
         if (d < rr && d > 0.01) {
           const u = 1 - d / rr;
-          targetVis = u * u * (3 - 2 * u); // smoothstep: borda macia
+          targetVis = BASE_VIS + (1 - BASE_VIS) * u * u * (3 - 2 * u); // smoothstep
           // onda radial viajante sobre o cluster (o "efeito de onda neles")
           const phase = d * wk - t * FOLLOW_WAVE_SPEED;
           const wave = Math.sin(phase);
