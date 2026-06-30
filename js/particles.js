@@ -15,7 +15,8 @@
   const ctx = canvas.getContext("2d", { alpha: true });
 
   const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const SHAPE = canvas.dataset.shape || "🌐";
+  // data-shape vazio = distribuição uniforme; com glifo = forma silhueta.
+  const SHAPE = (canvas.dataset.shape || "").trim();
 
   // Paleta de "confetes" (Google) + neutros (a maioria é neutra).
   const COLORS = ["#4285f4", "#ea4335", "#fbbc05", "#34a853", "#8b5cff"];
@@ -93,16 +94,40 @@
     };
   }
 
+  // Distribuição UNIFORME: grade com "jitter" cobre toda a view por igual
+  // (evita os aglomerados aleatórios de Math.random puro).
+  function evenPositions(n) {
+    const cols = Math.max(1, Math.round(Math.sqrt(n * (W / H))));
+    const rows = Math.max(1, Math.ceil(n / cols));
+    const cw = W / cols, ch = H / rows;
+    const pts = [];
+    for (let r = 0; r < rows && pts.length < n; r++) {
+      for (let c = 0; c < cols && pts.length < n; c++) {
+        pts.push({
+          x: (c + 0.5 + rand(-0.45, 0.45)) * cw,
+          y: (r + 0.5 + rand(-0.45, 0.45)) * ch,
+        });
+      }
+    }
+    return pts;
+  }
+
   function build() {
     const total = targetCount();
-    const shapePts = sampleShape();
-    const shapeCount = Math.min(shapePts.length, Math.floor(total * 0.6));
     particles = [];
-    for (let i = 0; i < shapeCount; i++) {
-      particles.push(makeParticle(shapePts[i].x, shapePts[i].y, true));
-    }
-    for (let i = shapeCount; i < total; i++) {
-      particles.push(makeParticle(Math.random() * W, Math.random() * H, false));
+    if (SHAPE) {
+      // (opcional) silhueta + ambiente uniforme ao redor
+      const shapePts = sampleShape();
+      const shapeCount = Math.min(shapePts.length, Math.floor(total * 0.55));
+      for (let i = 0; i < shapeCount; i++) {
+        particles.push(makeParticle(shapePts[i].x, shapePts[i].y, true));
+      }
+      const rest = evenPositions(total - shapeCount);
+      for (const p of rest) particles.push(makeParticle(p.x, p.y, false));
+    } else {
+      // padrão: tudo distribuído por igual em toda a view
+      const pts = evenPositions(total);
+      for (const p of pts) particles.push(makeParticle(p.x, p.y, false));
     }
   }
 

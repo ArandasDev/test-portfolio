@@ -83,7 +83,7 @@
       },
       { threshold: 0.3 }
     );
-    $$(".contact__title").forEach((el) => splitIO.observe(el));
+    $$(".footer-cta__title").forEach((el) => splitIO.observe(el));
   } else {
     revealEls.forEach((el) => el.classList.add("is-visible"));
     $$("[data-split]").forEach((el) => el.classList.add("is-revealed"));
@@ -211,6 +211,24 @@
       target.scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth", block: "start" });
     });
   });
+
+  /* ---------- 9b. Copiar e-mail (rodapé) ---------- */
+  const copyEmail = $("#copyEmail");
+  if (copyEmail && navigator.clipboard) {
+    const label = copyEmail.querySelector("span");
+    const original = label.textContent;
+    copyEmail.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(copyEmail.dataset.email);
+        copyEmail.classList.add("is-copied");
+        label.textContent = "Copiado!";
+        setTimeout(() => {
+          copyEmail.classList.remove("is-copied");
+          label.textContent = original;
+        }, 1800);
+      } catch (e) {}
+    });
+  }
 
   /* ---------- 10. Ano no rodapé ---------- */
   const yearEl = $("#year");

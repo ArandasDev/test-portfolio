@@ -43,6 +43,11 @@
   100% { transform: translateX(-50%); }
 }
 
+/* ----- Borda em gradiente girante (cards "duas frentes") ----- */
+@keyframes spin-border {
+  to { --bd-angle: 360deg; }
+}
+
 /* =========================================================
    ACESSIBILIDADE: desliga movimento se o usuário pedir
    ========================================================= */
