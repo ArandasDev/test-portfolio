@@ -26,6 +26,9 @@
   const FOLLOW_RADIUS = 260;// raio de influência do mouse (px)
   const FOLLOW_K = 0.5;     // o quanto seguem o cursor
   const HUE_SPEED = 26;     // velocidade do ciclo de cor (graus/seg)
+  // onda coletiva (campo de fluxo): vizinhos se movem juntos → onda visível
+  const WAVE_SCALE = 0.006; // "comprimento" da onda no espaço
+  const WAVE_SPEED = 0.6;   // velocidade com que a onda viaja no tempo
 
   const NAME = canvas.dataset.name || "Olá";
   const ROLE = canvas.dataset.role || "Designer";
@@ -65,9 +68,7 @@
           len: rand(7, 13),
           width: rand(1.3, 2.3),
           baseAngle: rand(0, Math.PI),
-          amp: rand(5, 13),
-          freqX: rand(0.3, 0.8),
-          freqY: rand(0.3, 0.8),
+          amp: rand(13, 24),
           phase: rand(0, Math.PI * 2),
           hueOffset: (bx + by) * 0.25,
           baseAlpha: rand(0.55, 0.95),
@@ -192,9 +193,13 @@
     const textMode = !mouse.active && scene.type === "text";
 
     for (const p of dashes) {
-      // alvo base: onda (gravidade zero)
-      let tx = p.bx + Math.sin(t * p.freqX + p.phase) * p.amp;
-      let ty = p.by + Math.cos(t * p.freqY + p.phase * 1.3) * p.amp;
+      // ONDA coletiva: direção vinda de um campo de fluxo que viaja no tempo.
+      // Depende de (bx,by), então traços vizinhos apontam juntos → onda coerente.
+      const flow = Math.sin(p.bx * WAVE_SCALE + t * WAVE_SPEED) +
+                   Math.cos(p.by * WAVE_SCALE + t * WAVE_SPEED * 0.85);
+      const waveAng = flow * 1.7;
+      let tx = p.bx + Math.cos(waveAng) * p.amp;
+      let ty = p.by + Math.sin(waveAng) * p.amp;
       let targetAlpha = p.baseAlpha;
       let sizeTarget = 1;
 
@@ -234,11 +239,12 @@
       p.alpha += (targetAlpha - p.alpha) * 0.08;
       p.size += (sizeTarget - p.size) * 0.1;
 
-      // orientação: na direção do movimento; senão, ângulo próprio com deriva
+      // orientação: movendo → na direção da velocidade; no texto → horizontal;
+      // senão → alinhado ao fluxo da onda (faz a onda ficar visível em faixas)
       const spd = p.vx * p.vx + p.vy * p.vy;
-      p.angle = spd > 0.6 ? Math.atan2(p.vy, p.vx) : p.baseAngle + Math.sin(t * 0.3 + p.phase) * 0.25;
-      // no texto, marquinhas horizontais deixam as letras mais legíveis
-      if (textMode && p.inText && spd <= 0.6) p.angle = 0;
+      if (spd > 0.6) p.angle = Math.atan2(p.vy, p.vx);
+      else if (textMode && p.inText) p.angle = 0;
+      else p.angle = waveAng;
 
       drawDash(p, (hueBase + p.hueOffset) % 360);
     }

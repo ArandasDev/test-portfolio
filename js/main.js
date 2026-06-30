@@ -159,32 +159,6 @@
     });
   }
 
-  /* ---------- 7. Cursor customizado (apenas desktop) ---------- */
-  if (isFinePointer && !prefersReduced) {
-    const cursor = $("#cursor");
-    const dot = $("#cursorDot");
-    let mx = 0, my = 0, cx = 0, cy = 0;
-
-    window.addEventListener("mousemove", (e) => {
-      mx = e.clientX; my = e.clientY;
-      dot.style.transform = `translate(${mx}px, ${my}px) translate(-50%, -50%)`;
-    });
-
-    const render = () => {
-      cx += (mx - cx) * 0.18;
-      cy += (my - cy) * 0.18;
-      cursor.style.transform = `translate(${cx}px, ${cy}px) translate(-50%, -50%)`;
-      requestAnimationFrame(render);
-    };
-    render();
-
-    $$("[data-cursor]").forEach((el) => {
-      const type = el.dataset.cursor;
-      el.addEventListener("mouseenter", () => cursor.classList.add(type === "view" ? "is-view" : "is-hover"));
-      el.addEventListener("mouseleave", () => cursor.classList.remove("is-view", "is-hover"));
-    });
-  }
-
   /* ---------- 8. Botões magnéticos (desktop) ---------- */
   if (isFinePointer && !prefersReduced) {
     $$("[data-magnetic]").forEach((el) => {
