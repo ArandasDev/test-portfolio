@@ -32,13 +32,10 @@
     </div>
   </div>
 
-  <!-- Fundo: aurora + grid pontilhado -->
+  <!-- Fundo: grid pontilhado + campo de partículas (traços) reativo ao mouse -->
   <div class="bg" aria-hidden="true">
     <div class="bg__grid"></div>
-    <div class="bg__aurora bg__aurora--1"></div>
-    <div class="bg__aurora bg__aurora--2"></div>
-    <div class="bg__aurora bg__aurora--3"></div>
-    <div class="bg__noise"></div>
+    <canvas class="bg__particles" id="particles"></canvas>
   </div>
 
   <!-- Cursor customizado (desktop) -->
@@ -122,6 +119,30 @@
         <span>Prototipagem</span><span class="marquee__sep">✦</span>
       </div>
     </div>
+
+    <!-- ============ DUAS FRENTES (cards c/ sobreposição) ============ -->
+    <section class="paths" id="paths" aria-label="Como posso ajudar">
+      <!-- 🔧 TROCAR: os dois caminhos que você oferece -->
+      <article class="path reveal" data-reveal data-cursor="hover">
+        <div class="path__overlay" aria-hidden="true"></div>
+        <div class="path__content">
+          <span class="path__badge">Do zero ao ar</span>
+          <h2 class="path__title">Para founders</h2>
+          <p class="path__sub">Tiro sua ideia do papel — design e código, produto completo.</p>
+          <span class="path__btn">Começar um projeto <span aria-hidden="true">→</span></span>
+        </div>
+      </article>
+
+      <article class="path path--alt reveal" data-reveal data-delay="0.1" data-cursor="hover">
+        <div class="path__overlay" aria-hidden="true"></div>
+        <div class="path__content">
+          <span class="path__badge">Reforço de time</span>
+          <h2 class="path__title">Para times</h2>
+          <p class="path__sub">Acelero design systems e front-end ao lado do seu time.</p>
+          <span class="path__btn">Saber mais <span aria-hidden="true">→</span></span>
+        </div>
+      </article>
+    </section>
 
     <!-- ============ WORK ============ -->
     <section class="section work" id="work">
@@ -309,6 +330,7 @@
     <span class="footer__made">Feito com HTML, CSS &amp; JS</span>
   </footer>
 
+  <script src="js/particles.js" defer></script>
   <script src="js/main.js" defer></script>
 </body>
 </html>

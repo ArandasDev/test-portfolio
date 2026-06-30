@@ -188,22 +188,7 @@
     });
   }
 
-  /* ---------- 9. Parallax sutil no hero (mouse) ---------- */
-  if (isFinePointer && !prefersReduced) {
-    const hero = $("#hero");
-    const auroras = $$(".bg__aurora");
-    hero?.addEventListener("mousemove", (e) => {
-      const x = (e.clientX / window.innerWidth - 0.5) * 2;
-      const y = (e.clientY / window.innerHeight - 0.5) * 2;
-      auroras.forEach((a, i) => {
-        const depth = (i + 1) * 8;
-        a.style.marginLeft = `${x * depth}px`;
-        a.style.marginTop = `${y * depth}px`;
-      });
-    });
-  }
-
-  /* ---------- 10. Smooth scroll para âncoras ---------- */
+  /* ---------- 9. Smooth scroll para âncoras ---------- */
   $$('a[href^="#"]').forEach((a) => {
     a.addEventListener("click", (e) => {
       const id = a.getAttribute("href");
@@ -215,7 +200,7 @@
     });
   });
 
-  /* ---------- 11. Ano no rodapé ---------- */
+  /* ---------- 10. Ano no rodapé ---------- */
   const yearEl = $("#year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 

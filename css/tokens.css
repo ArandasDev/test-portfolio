@@ -1,26 +1,33 @@
 /* =========================================================
    DESIGN TOKENS — fonte única de verdade do visual.
+   Tema CLARO, inspirado no Google Antigravity.
    Mexa aqui para mudar a "cara" do site inteiro.
    ========================================================= */
 :root {
-  /* ----- Cores base ----- */
-  --bg: #050507;
-  --bg-elev: #0b0b10;
-  --surface: rgba(255, 255, 255, 0.03);
-  --surface-hover: rgba(255, 255, 255, 0.06);
-  --border: rgba(255, 255, 255, 0.09);
-  --border-strong: rgba(255, 255, 255, 0.16);
+  /* ----- Cores base (tema claro) ----- */
+  --bg: #fbfbfa;
+  --bg-elev: #ffffff;
+  --bg-blur: rgba(251, 251, 250, 0.72);
+  --surface: rgba(0, 0, 0, 0.025);
+  --surface-hover: rgba(0, 0, 0, 0.05);
+  --border: rgba(0, 0, 0, 0.1);
+  --border-strong: rgba(0, 0, 0, 0.2);
 
   /* ----- Texto ----- */
-  --text: #f3f3f6;
-  --text-dim: #9b9ba6;
-  --text-faint: #5e5e69;
+  --text: #0a0a0a;
+  --text-dim: #5f5f63;
+  --text-faint: #9a9a9f;
 
-  /* ----- Acento (gradiente aurora roxo→azul) ----- */
-  --accent: #8b5cff;
-  --accent-2: #5b8cff;
-  --accent-3: #c06cff;
-  --gradient: linear-gradient(120deg, var(--accent-3), var(--accent), var(--accent-2));
+  /* ----- Pontos do grid de fundo ----- */
+  --grid-dot: rgba(0, 0, 0, 0.14);
+
+  /* ----- Acento (paleta de "confetes" Antigravity / Google) ----- */
+  --accent: #4285f4;       /* azul   */
+  --accent-2: #ea4335;     /* vermelho */
+  --accent-3: #fbbc05;     /* amarelo */
+  --accent-4: #34a853;     /* verde  */
+  --accent-5: #8b5cff;     /* roxo   */
+  --gradient: linear-gradient(120deg, var(--accent-2), var(--accent-5), var(--accent));
 
   /* ----- Tipografia ----- */
   --font-display: "Sora", system-ui, sans-serif;
@@ -33,7 +40,7 @@
   --step-2:  clamp(1.5rem, 1.3rem + 1vw, 2.1rem);
   --step-3:  clamp(2.1rem, 1.7rem + 2vw, 3.4rem);
   --step-4:  clamp(2.8rem, 2rem + 4vw, 6rem);
-  --step-5:  clamp(3.4rem, 2.2rem + 6vw, 8.5rem);
+  --step-5:  clamp(3.4rem, 2rem + 8vw, 10rem);
 
   /* ----- Espaçamento ----- */
   --space-xs: 0.5rem;

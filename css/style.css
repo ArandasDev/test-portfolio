@@ -23,7 +23,7 @@ body.is-locked { overflow: hidden; }
 
 em { font-style: normal; color: var(--accent); }
 
-/* ---------- Fundo: aurora + grid + ruído ---------- */
+/* ---------- Fundo: grid pontilhado + campo de partículas ---------- */
 .bg {
   position: fixed;
   inset: 0;
@@ -34,29 +34,18 @@ em { font-style: normal; color: var(--accent); }
 .bg__grid {
   position: absolute;
   inset: -2px;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
   background-size: 30px 30px;
-  mask-image: radial-gradient(ellipse 80% 80% at 50% 30%, #000 40%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 30%, #000 40%, transparent 100%);
-  opacity: 0.5;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 35%, #000 35%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 35%, #000 35%, transparent 100%);
+  opacity: 0.6;
 }
-.bg__aurora {
-  position: absolute;
-  width: 60vmax;
-  height: 60vmax;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.4;
-  will-change: transform;
-}
-.bg__aurora--1 { background: radial-gradient(circle, var(--accent-3), transparent 60%); top: -20vmax; left: -15vmax; animation: aurora-1 22s var(--ease) infinite alternate; }
-.bg__aurora--2 { background: radial-gradient(circle, var(--accent-2), transparent 60%); bottom: -25vmax; right: -15vmax; animation: aurora-2 28s var(--ease) infinite alternate; }
-.bg__aurora--3 { background: radial-gradient(circle, var(--accent), transparent 60%); top: 40%; left: 50%; opacity: 0.25; animation: aurora-3 25s var(--ease) infinite alternate; }
-.bg__noise {
+.bg__particles {
   position: absolute;
   inset: 0;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 /* ---------- Cursor customizado (desktop) ---------- */
@@ -110,7 +99,7 @@ em { font-style: normal; color: var(--accent); }
   border-bottom: 1px solid transparent;
 }
 .header.is-scrolled {
-  background: rgba(5, 5, 7, 0.7);
+  background: var(--bg-blur);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom-color: var(--border);
@@ -187,7 +176,7 @@ em { font-style: normal; color: var(--accent); }
   gap: var(--space-md);
   position: fixed;
   inset: 0;
-  background: rgba(5,5,7,0.96);
+  background: var(--bg-blur);
   backdrop-filter: blur(20px);
   padding: var(--gutter);
   z-index: 40;
@@ -317,6 +306,82 @@ em { font-style: normal; color: var(--accent); }
   color: var(--text-dim);
 }
 .marquee__sep { color: var(--accent) !important; }
+
+/* ---------- Duas frentes (cards com sobreposição) ---------- */
+.paths {
+  position: relative;
+  z-index: var(--z-content);
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding: var(--space-lg) var(--gutter);
+  display: grid;
+  gap: var(--space-sm);
+}
+.path {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elev);
+  isolation: isolate;
+  transition: transform .5s var(--ease), box-shadow .5s var(--ease), border-color .5s var(--ease);
+}
+.path:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.4);
+  border-color: transparent;
+}
+/* a "sobreposição": painel colorido que sobe e cobre o card no hover */
+.path__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--gradient);
+  transform: translateY(101%);
+  transition: transform .55s var(--ease);
+}
+.path--alt .path__overlay { background: linear-gradient(120deg, var(--accent-4), var(--accent), var(--accent-5)); }
+.path:hover .path__overlay { transform: translateY(0); }
+
+.path__content {
+  position: relative;
+  padding: clamp(1.75rem, 5vw, 3rem);
+  display: grid;
+  gap: 0.6rem;
+  transition: color .45s var(--ease);
+}
+.path:hover .path__content { color: #fff; }
+
+.path__badge {
+  justify-self: start;
+  font-size: var(--step--1);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 0.3rem 0.85rem;
+  background: var(--bg);
+  transition: color .45s var(--ease), border-color .45s var(--ease), background .45s var(--ease);
+}
+.path:hover .path__badge { color: #fff; border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.12); }
+.path__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--step-3);
+  letter-spacing: -0.02em;
+  margin-top: 0.4rem;
+}
+.path__sub { color: var(--text-dim); max-width: 38ch; transition: color .45s var(--ease); }
+.path:hover .path__sub { color: rgba(255,255,255,0.85); }
+.path__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: var(--space-sm);
+  font-weight: 600;
+  font-size: var(--step-0);
+}
+.path__btn span { transition: transform .4s var(--ease); }
+.path:hover .path__btn span { transform: translateX(5px); }
 
 /* ---------- Cabeçalho de seção ---------- */
 .section__head { margin-bottom: var(--space-lg); }
@@ -539,6 +604,7 @@ em { font-style: normal; color: var(--accent); }
    BREAKPOINTS — sobem a partir do mobile
    ========================================================= */
 @media (min-width: 720px) {
+  .paths { grid-template-columns: 1fr 1fr; gap: var(--space-md); }
   .projects { grid-template-columns: repeat(2, 1fr); gap: var(--space-lg) var(--space-md); }
   .about__grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); align-items: end; }
   .about__cols { grid-template-columns: repeat(3, 1fr); margin-top: 0; }

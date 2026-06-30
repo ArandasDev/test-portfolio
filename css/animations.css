@@ -24,20 +24,6 @@
 .is-revealed .line__inner,
 .line__inner.is-revealed { transform: translateY(0); }
 
-/* ----- Auroras flutuando ----- */
-@keyframes aurora-1 {
-  0%   { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(12vmax, 8vmax) scale(1.2); }
-}
-@keyframes aurora-2 {
-  0%   { transform: translate(0, 0) scale(1.1); }
-  100% { transform: translate(-10vmax, -6vmax) scale(1); }
-}
-@keyframes aurora-3 {
-  0%   { transform: translate(-50%, 0) scale(1); }
-  100% { transform: translate(-40%, -10vmax) scale(1.3); }
-}
-
 /* ----- Pulso do status "disponível" ----- */
 @keyframes pulse {
   0%   { box-shadow: 0 0 0 0 rgba(74,222,128,0.5); }
@@ -68,6 +54,5 @@
   }
   [data-reveal] { opacity: 1; transform: none; }
   .line__inner { transform: none; }
-  .bg__aurora { animation: none; }
   .marquee__track { animation: none; }
 }
