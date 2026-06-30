@@ -1,10 +1,12 @@
 /* =========================================================
-   hero-trails.js — campo de TRAÇOS em gravidade zero (estilo
-   Google Antigravity). Riscos curtos espalhados que:
-   - flutuam suavemente com Math.sin() quando o mouse está parado;
-   - seguem o movimento do mouse com física de mola (spring) +
-     amortecimento (damping), com retorno suave à âncora;
-   - trocam de cor passando por todo o espectro (HSL no tempo).
+   hero-trails.js — campo de TRAÇOS em gravidade zero (Antigravity).
+   - Sem mouse: coreografia que alterna entre ONDA e FORMAR TEXTO
+     (nome → onda → profissão → onda…), via amostragem dos pixels do
+     texto como alvos; a física de mola faz o morph suave.
+   - Com mouse: os traços seguem o cursor (mola + damping) e aplicam a
+     regra de tamanho: perto = menor, distância média = maior,
+     fora do raio = menor.
+   - Cores ciclando por todo o espectro (HSL no tempo).
    Canvas isolado (pointer-events:none); não altera o layout.
    ========================================================= */
 (() => {
@@ -19,25 +21,36 @@
   const mouse = { x: 0, y: 0, active: false, lastMove: -9999 };
 
   // ---- parâmetros ----
-  const STIFFNESS = 0.08;   // rigidez da mola (retorno à âncora / alvo)
+  const STIFFNESS = 0.085;  // rigidez da mola
   const DAMPING = 0.8;      // amortecimento (inércia/atraso)
-  const FOLLOW_RADIUS = 260;// raio em que os traços seguem o mouse (px)
-  const FOLLOW_K = 0.55;    // o quanto são puxados em direção ao cursor
+  const FOLLOW_RADIUS = 260;// raio de influência do mouse (px)
+  const FOLLOW_K = 0.5;     // o quanto seguem o cursor
   const HUE_SPEED = 26;     // velocidade do ciclo de cor (graus/seg)
+
+  const NAME = canvas.dataset.name || "Olá";
+  const ROLE = canvas.dataset.role || "Designer";
+  const SCENES = [
+    { type: "wave", dur: 5000 },
+    { type: "text", text: NAME, dur: 5000 },
+    { type: "wave", dur: 3500 },
+    { type: "text", text: ROLE, dur: 5000 },
+  ];
 
   let dashes = [];
   let raf = null;
+  let sceneIdx = 0;
+  let sceneClock = 0;
+  let lastNow = 0;
 
   const rand = (a, b) => Math.random() * (b - a) + a;
 
   function count() {
-    const base = (W * H) / 9000;
-    return Math.min(Math.round(base), window.innerWidth < 720 ? 90 : 320);
+    const base = (W * H) / 5200;                  // mais recheado
+    return Math.min(Math.round(base), window.innerWidth < 720 ? 200 : 660);
   }
 
   function build() {
     const n = count();
-    // distribuição uniforme (grade com jitter)
     const cols = Math.max(1, Math.round(Math.sqrt(n * (W / H))));
     const rows = Math.max(1, Math.ceil(n / cols));
     const cw = W / cols, ch = H / rows;
@@ -48,17 +61,68 @@
         const by = (r + 0.5 + rand(-0.45, 0.45)) * ch;
         dashes.push({
           bx, by, x: bx, y: by, vx: 0, vy: 0,
-          len: rand(6, 13),
+          tix: bx, tiy: by, inText: false,
+          len: rand(7, 13),
           width: rand(1.3, 2.3),
           baseAngle: rand(0, Math.PI),
-          amp: rand(5, 13),           // amplitude do flutuar
+          amp: rand(5, 13),
           freqX: rand(0.3, 0.8),
           freqY: rand(0.3, 0.8),
           phase: rand(0, Math.PI * 2),
-          hueOffset: (bx + by) * 0.25, // matiz varia pelo espaço
-          alpha: rand(0.55, 0.95),
+          hueOffset: (bx + by) * 0.25,
+          baseAlpha: rand(0.55, 0.95),
+          alpha: 0.7,
+          size: 1,
         });
       }
+    }
+  }
+
+  // amostra os pixels de um texto → pontos-alvo (px CSS, centralizados)
+  function sampleText(str) {
+    const off = document.createElement("canvas");
+    off.width = W; off.height = H;
+    const o = off.getContext("2d");
+    o.fillStyle = "#000";
+    o.textAlign = "center";
+    o.textBaseline = "middle";
+    // posiciona no espaço VAZIO: quadrante inferior-direito no desktop
+    // (abaixo do título e à direita do parágrafo/botões); centro-baixo em telas estreitas
+    const wide = W > 900;
+    const cx = wide ? W * 0.70 : W * 0.5;
+    const cy = wide ? H * 0.74 : H * 0.78;
+    const maxW = (wide ? 0.54 : 0.88) * W;
+    let fs = Math.min(H * 0.22, W * 0.15);
+    o.font = `800 ${fs}px "Sora", system-ui, sans-serif`;
+    const w = o.measureText(str).width;
+    if (w > maxW) { fs *= maxW / w; o.font = `800 ${fs}px "Sora", system-ui, sans-serif`; }
+    o.fillText(str, cx, cy);
+    const data = o.getImageData(0, 0, W, H).data;
+    const step = Math.max(4, Math.round(fs / 30));
+    const pts = [];
+    for (let y = 0; y < H; y += step) {
+      for (let x = 0; x < W; x += step) {
+        if (data[(y * W + x) * 4 + 3] > 128) pts.push({ x, y });
+      }
+    }
+    for (let i = pts.length - 1; i > 0; i--) {
+      const j = (Math.random() * (i + 1)) | 0;
+      [pts[i], pts[j]] = [pts[j], pts[i]];
+    }
+    return pts;
+  }
+
+  function enterScene() {
+    const sc = SCENES[sceneIdx];
+    if (sc.type === "text") {
+      const pts = sampleText(sc.text);
+      const n = Math.min(pts.length, dashes.length);
+      for (let i = 0; i < dashes.length; i++) {
+        if (i < n) { dashes[i].tix = pts[i].x; dashes[i].tiy = pts[i].y; dashes[i].inText = true; }
+        else dashes[i].inText = false;
+      }
+    } else {
+      for (const p of dashes) p.inText = false;
     }
   }
 
@@ -69,8 +133,9 @@
     H = Math.max(1, Math.round(rect.height));
     canvas.width = Math.round(W * dpr);
     canvas.height = Math.round(H * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // desenha em px CSS
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     build();
+    enterScene();
     if (prefersReduced) drawStatic();
   }
 
@@ -88,12 +153,12 @@
   }, { passive: true });
 
   function drawDash(p, hue) {
-    const half = p.len * 0.5;
+    const half = p.len * 0.5 * p.size;
     const dx = Math.cos(p.angle) * half;
     const dy = Math.sin(p.angle) * half;
     ctx.globalAlpha = p.alpha;
     ctx.strokeStyle = `hsl(${hue}, 85%, 58%)`;
-    ctx.lineWidth = p.width;
+    ctx.lineWidth = Math.max(0.6, p.width * (0.55 + p.size * 0.5));
     ctx.lineCap = "round";
     ctx.beginPath();
     ctx.moveTo(p.x - dx, p.y - dy);
@@ -103,46 +168,77 @@
 
   function drawStatic() {
     ctx.clearRect(0, 0, W, H);
-    for (const p of dashes) {
-      p.x = p.bx; p.y = p.by; p.angle = p.baseAngle;
-      drawDash(p, (p.hueOffset) % 360);
-    }
+    for (const p of dashes) { p.x = p.bx; p.y = p.by; p.angle = p.baseAngle; p.alpha = p.baseAlpha; p.size = 1; drawDash(p, p.hueOffset % 360); }
     ctx.globalAlpha = 1;
   }
 
   function frame(now) {
+    const dt = lastNow ? now - lastNow : 16;
+    lastNow = now;
     ctx.clearRect(0, 0, W, H);
     const t = now * 0.001;
     const hueBase = (t * HUE_SPEED) % 360;
-    const followActive = mouse.active && now - mouse.lastMove < 600;
+    const scene = SCENES[sceneIdx];
+
+    // avança a coreografia apenas quando o mouse não está presente
+    if (!mouse.active) {
+      sceneClock += dt;
+      if (sceneClock > scene.dur) {
+        sceneClock = 0;
+        sceneIdx = (sceneIdx + 1) % SCENES.length;
+        enterScene();
+      }
+    }
+    const textMode = !mouse.active && scene.type === "text";
 
     for (const p of dashes) {
-      // alvo: âncora + flutuar suave (gravidade zero)
+      // alvo base: onda (gravidade zero)
       let tx = p.bx + Math.sin(t * p.freqX + p.phase) * p.amp;
       let ty = p.by + Math.cos(t * p.freqY + p.phase * 1.3) * p.amp;
+      let targetAlpha = p.baseAlpha;
+      let sizeTarget = 1;
 
-      // seguir o mouse (mola): alvo desloca em direção ao cursor por proximidade
-      if (followActive) {
+      if (mouse.active) {
+        // seguir o cursor + regra de tamanho por distância
         const mdx = mouse.x - p.bx;
         const mdy = mouse.y - p.by;
         const d = Math.hypot(mdx, mdy);
         if (d < FOLLOW_RADIUS) {
-          const k = (1 - d / FOLLOW_RADIUS) * FOLLOW_K;
-          tx += mdx * k;
-          ty += mdy * k;
+          const u = d / FOLLOW_RADIUS;
+          tx += mdx * (1 - u) * FOLLOW_K;
+          ty += mdy * (1 - u) * FOLLOW_K;
+          // perto = menor, meio = maior, borda = menor (sino com seno)
+          sizeTarget = 0.45 + 1.0 * Math.sin(u * Math.PI);
+        } else {
+          sizeTarget = 0.45; // fora do raio = minimizado
+        }
+      } else if (textMode) {
+        if (p.inText) {
+          // forma o texto (com leve respiração); marquinhas curtas = legível
+          tx = p.tix + Math.sin(t * 0.8 + p.phase) * 1.2;
+          ty = p.tiy + Math.cos(t * 0.8 + p.phase) * 1.2;
+          sizeTarget = 0.6;
+        } else {
+          targetAlpha = p.baseAlpha * 0.12; // os demais ficam discretos
+          sizeTarget = 0.7;
         }
       }
 
-      // física de mola + amortecimento
+      // física: mola + amortecimento
       p.vx = (p.vx + (tx - p.x) * STIFFNESS) * DAMPING;
       p.vy = (p.vy + (ty - p.y) * STIFFNESS) * DAMPING;
       p.x += p.vx;
       p.y += p.vy;
 
-      // orientação: aponta na direção do movimento quando se move;
-      // senão mantém o ângulo próprio (com leve deriva)
-      const sp = p.vx * p.vx + p.vy * p.vy;
-      p.angle = sp > 0.6 ? Math.atan2(p.vy, p.vx) : p.baseAngle + Math.sin(t * 0.3 + p.phase) * 0.25;
+      // suaviza alpha e tamanho
+      p.alpha += (targetAlpha - p.alpha) * 0.08;
+      p.size += (sizeTarget - p.size) * 0.1;
+
+      // orientação: na direção do movimento; senão, ângulo próprio com deriva
+      const spd = p.vx * p.vx + p.vy * p.vy;
+      p.angle = spd > 0.6 ? Math.atan2(p.vy, p.vx) : p.baseAngle + Math.sin(t * 0.3 + p.phase) * 0.25;
+      // no texto, marquinhas horizontais deixam as letras mais legíveis
+      if (textMode && p.inText && spd <= 0.6) p.angle = 0;
 
       drawDash(p, (hueBase + p.hueOffset) % 360);
     }
@@ -150,7 +246,7 @@
     raf = requestAnimationFrame(frame);
   }
 
-  function start() { if (!raf && !prefersReduced) raf = requestAnimationFrame(frame); }
+  function start() { if (!raf && !prefersReduced) { lastNow = 0; raf = requestAnimationFrame(frame); } }
   function stop() { if (raf) { cancelAnimationFrame(raf); raf = null; } }
   document.addEventListener("visibilitychange", () => { if (document.hidden) stop(); else start(); });
 
