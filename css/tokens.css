@@ -19,7 +19,7 @@
   --text-faint: #9a9a9f;
 
   /* ----- Pontos do grid de fundo ----- */
-  --grid-dot: rgba(0, 0, 0, 0.14);
+  --grid-dot: rgba(0, 0, 0, 0.22);
 
   /* ----- Acento (paleta de "confetes" Antigravity / Google) ----- */
   --accent: #4285f4;       /* azul   */
@@ -86,5 +86,5 @@
   --text-dim: #9b9ba6;
   --text-faint: #5e5e69;
 
-  --grid-dot: rgba(255, 255, 255, 0.12);
+  --grid-dot: rgba(255, 255, 255, 0.2);
 }

@@ -168,14 +168,14 @@
   }
 
   /* ---------- Física: onda coletiva + ondulação de "gota" + mola ---------- */
-  const SPRING = 0.06;    // força da mola de retorno
-  const FRICTION = 0.82;  // amortecimento
+  const SPRING = 0.07;    // força da mola de retorno
+  const FRICTION = 0.84;  // amortecimento (mantém o movimento suave)
   // campo de fluxo: a direção depende da posição (vizinhos se movem juntos)
   const WAVE_SCALE = 0.005;  // "comprimento" da onda no espaço
   const WAVE_SPEED = 0.5;    // velocidade com que a onda viaja no tempo
   // atração ao cursor (os traços SEGUEM o mouse) + onda viajante enquanto seguem
-  const PULL_RADIUS = 300; // alcance da atração (px CSS)
-  const PULL = 0.6;        // quão forte os traços são puxados (0..1)
+  const PULL_RADIUS = 440; // alcance da atração (px CSS) — pega mais traços
+  const PULL = 0.85;       // quão forte os traços são puxados (0..1)
   const WAVE_LEN = 70;     // distância entre cristas da onda que segue (px CSS)
   const WAVE_AMP = 14;     // deslocamento da onda enquanto seguem (px CSS)
   const FOLLOW_WAVE_SPEED = 5; // velocidade da onda que viaja pelo cursor

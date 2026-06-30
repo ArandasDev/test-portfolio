@@ -48,7 +48,7 @@ em { font-style: normal; color: var(--accent); }
   /* dots distribuídos por toda a view; leve fade só nas bordas extremas */
   mask-image: linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
-  opacity: 0.55;
+  opacity: 0.85;
 }
 .hero__particles {
   position: absolute;
@@ -633,11 +633,11 @@ em { font-style: normal; color: var(--accent); }
   position: absolute;
   inset: 0;
   z-index: -2;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px);
   background-size: 30px 30px;
   mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
-  opacity: 0.5;
+  opacity: 0.8;
 }
 /* iluminação em meia-lua COLORIDA, subindo do fundo (halo amplo, oval, difuso) */
 .site-footer__glow {
