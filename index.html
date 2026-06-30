@@ -78,12 +78,10 @@
 
     <!-- ============ HERO ============ -->
     <section class="hero" id="hero">
-      <!-- Fundo do hero: grid + partículas distribuídas que reagem ao mouse.
-           🔧 data-shape vazio = distribuição uniforme. Preencha (ex.: "🌐", "★")
-              para os traços formarem uma silhueta. -->
+      <!-- Fundo do hero: apenas o grid pontilhado.
+           (Os traços/partículas serão refeitos do zero.) -->
       <div class="hero__bg" aria-hidden="true">
         <div class="hero__grid"></div>
-        <canvas class="hero__particles" id="particles" data-shape=""></canvas>
       </div>
       <div class="hero__inner">
         <p class="hero__eyebrow reveal" data-reveal>
@@ -387,7 +385,6 @@
     </div>
   </footer>
 
-  <script src="js/particles.js" defer></script>
   <script src="js/main.js" defer></script>
 </body>
 </html>
