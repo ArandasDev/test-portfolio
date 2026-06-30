@@ -75,22 +75,21 @@
   }
 
   function makeParticle(bx, by, inShape) {
-    const colored = Math.random() < (inShape ? 0.4 : 0.28);
+    const colored = Math.random() < (inShape ? 0.5 : 0.42);
     return {
       bx, by,                        // âncora (na silhueta ou aleatória)
       x: bx + rand(-40, 40), y: by + rand(-40, 40),
       vx: 0, vy: 0,
       len: rand(inShape ? 5 : 6, inShape ? 11 : 15) * dpr,
       angle: rand(0, Math.PI),
-      spin: rand(-0.012, 0.012),     // giro contínuo (vida própria)
       amp: rand(inShape ? 1.2 : 3, inShape ? 3.5 : 8) * dpr, // wobble
-      freqX: rand(0.3, 0.9),
-      freqY: rand(0.3, 0.9),
       phase: rand(0, Math.PI * 2),
       neutral: !colored,
-      color: colored ? COLORS[(Math.random() * COLORS.length) | 0] : NEUTRAL,
+      // deslocamento de matiz por posição: faz a cor "varrer" o espaço como
+      // a borda em gradiente girante dos cards
+      hueOffset: (bx + by) * 0.18,
       width: (colored ? rand(1.6, 2.6) : rand(1, 1.7)) * dpr,
-      alpha: colored ? rand(0.7, 1) : rand(0.28, 0.55),
+      alpha: colored ? rand(0.75, 1) : rand(0.28, 0.55),
     };
   }
 
@@ -141,11 +140,19 @@
     if (prefersReduced) drawStatic();
   }
 
+  // velocidade do ciclo de cor (graus/seg) — igual em espírito à borda girante
+  const HUE_SPEED = 45;
+  let clock = 0; // tempo atual (s), atualizado no tick
+
   function drawDash(p) {
     const dx = Math.cos(p.angle) * p.len * 0.5;
     const dy = Math.sin(p.angle) * p.len * 0.5;
     ctx.globalAlpha = p.alpha;
-    ctx.strokeStyle = p.neutral ? NEUTRAL : p.color;
+    // traços coloridos trocam de cor continuamente (matiz girando no tempo +
+    // offset por posição = a cor "varre" a tela, como o gradiente do card)
+    ctx.strokeStyle = p.neutral
+      ? NEUTRAL
+      : `hsl(${(clock * HUE_SPEED + p.hueOffset) % 360}, 85%, 60%)`;
     ctx.lineWidth = p.width;
     ctx.lineCap = "round";
     ctx.beginPath();
@@ -166,23 +173,25 @@
   // campo de fluxo: a direção depende da posição (vizinhos se movem juntos)
   const WAVE_SCALE = 0.005;  // "comprimento" da onda no espaço
   const WAVE_SPEED = 0.5;    // velocidade com que a onda viaja no tempo
-  // ondulação tipo gota na água ao redor do cursor (anéis que viajam pra fora)
-  const RIPPLE_RADIUS = 300; // alcance da ondulação (px CSS)
-  const RIPPLE_LEN = 55;     // distância entre cristas dos anéis (px CSS)
-  const RIPPLE_AMP = 22;     // deslocamento radial máximo (px CSS)
-  const RIPPLE_SPEED = 6;    // velocidade de propagação dos anéis
+  // atração ao cursor (os traços SEGUEM o mouse) + onda viajante enquanto seguem
+  const PULL_RADIUS = 300; // alcance da atração (px CSS)
+  const PULL = 0.6;        // quão forte os traços são puxados (0..1)
+  const WAVE_LEN = 70;     // distância entre cristas da onda que segue (px CSS)
+  const WAVE_AMP = 14;     // deslocamento da onda enquanto seguem (px CSS)
+  const FOLLOW_WAVE_SPEED = 5; // velocidade da onda que viaja pelo cursor
 
   function tick(now) {
     ctx.clearRect(0, 0, W, H);
     const t = now * 0.001;
+    clock = t;
     const mx = mouse.x * dpr;
     const my = mouse.y * dpr;
-    const rr = RIPPLE_RADIUS * dpr;
-    const rk = (Math.PI * 2) / (RIPPLE_LEN * dpr);
-    const ramp = RIPPLE_AMP * dpr;
+    const pr = PULL_RADIUS * dpr;
+    const wk = (Math.PI * 2) / (WAVE_LEN * dpr);
+    const wamp = WAVE_AMP * dpr;
 
     for (const p of particles) {
-      // ONDA DE FLUXO: direção vinda de um campo que viaja no tempo.
+      // ONDA DE FLUXO (idle): direção vinda de um campo que viaja no tempo.
       // Como depende de (bx, by), traços vizinhos apontam para o mesmo lado
       // → onda coerente percorrendo a tela, mesmo com o mouse parado.
       const flow = Math.sin(p.bx * WAVE_SCALE + t * WAVE_SPEED) +
@@ -192,18 +201,23 @@
       let ty = p.by + Math.sin(ang) * p.amp;
       p.angle = ang; // traço alinhado à correnteza
 
-      // GOTA NA ÁGUA: anéis concêntricos ao redor do cursor. O seno alterna
-      // empurrar (+) e puxar (−) ao longo do raio = repulsão + atração; o termo
-      // −t faz as cristas viajarem pra fora; a amplitude cai com a distância.
+      // SEGUIR O MOUSE: traços dentro do raio são ATRAÍDOS para o cursor
+      // (o alvo desloca em direção a ele); uma onda viajante modula o quanto
+      // são puxados → efeito de onda enquanto seguem o mouse.
       if (mouse.active) {
-        const dx = p.bx - mx;
-        const dy = p.by - my;
+        const dx = mx - p.bx;
+        const dy = my - p.by;
         const d = Math.hypot(dx, dy);
-        if (d < rr && d > 0.01) {
-          const falloff = 1 - d / rr;
-          const ripple = Math.sin(d * rk - t * RIPPLE_SPEED) * ramp * falloff * falloff;
-          tx += (dx / d) * ripple;
-          ty += (dy / d) * ripple;
+        if (d < pr && d > 0.01) {
+          const falloff = 1 - d / pr;
+          const wave = 0.7 + 0.3 * Math.sin(d * wk - t * FOLLOW_WAVE_SPEED);
+          const pull = falloff * falloff * PULL * wave;
+          tx += dx * pull;
+          ty += dy * pull;
+          // alinha o traço na direção do cursor + onda transversal sutil
+          p.angle = Math.atan2(dy, dx) + Math.sin(d * wk - t * FOLLOW_WAVE_SPEED) * 0.6;
+          tx += (-dy / d) * wamp * falloff * Math.sin(d * wk - t * FOLLOW_WAVE_SPEED);
+          ty += (dx / d) * wamp * falloff * Math.sin(d * wk - t * FOLLOW_WAVE_SPEED);
         }
       }
 
